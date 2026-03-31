@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown, User } from "lucide-react";
+import { Menu, X, ChevronDown, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navLinks = [
   { label: "Home", path: "/" },
@@ -22,6 +23,13 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
   const location = useLocation();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   return (
     <motion.header
@@ -31,7 +39,6 @@ const Navbar = () => {
       className="fixed top-4 left-4 right-4 z-50 glass rounded-2xl"
     >
       <nav className="container mx-auto flex items-center justify-between px-6 py-3">
-        {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center">
             <span className="text-accent-foreground font-bold text-sm">CT</span>
@@ -41,7 +48,6 @@ const Navbar = () => {
           </span>
         </Link>
 
-        {/* Desktop Nav */}
         <div className="hidden lg:flex items-center gap-1">
           {navLinks.map((link) =>
             link.children ? (
@@ -93,18 +99,28 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* Right section */}
         <div className="flex items-center gap-3">
           <Link to="/book" className="hidden sm:block">
-            <Button variant="accent" size="sm">
-              Book Now
-            </Button>
+            <Button variant="accent" size="sm">Book Now</Button>
           </Link>
-          <Link to="/auth">
-            <Button variant="ghost" size="icon" className="text-foreground/70 hover:text-foreground">
-              <User className="w-5 h-5" />
-            </Button>
-          </Link>
+          {user ? (
+            <div className="flex items-center gap-2">
+              <Link to="/dashboard">
+                <Button variant="ghost" size="icon" className="text-foreground/70 hover:text-foreground">
+                  <User className="w-5 h-5" />
+                </Button>
+              </Link>
+              <Button variant="ghost" size="icon" className="text-foreground/70 hover:text-foreground" onClick={handleSignOut}>
+                <LogOut className="w-5 h-5" />
+              </Button>
+            </div>
+          ) : (
+            <Link to="/auth">
+              <Button variant="ghost" size="icon" className="text-foreground/70 hover:text-foreground">
+                <User className="w-5 h-5" />
+              </Button>
+            </Link>
+          )}
           <button
             className="lg:hidden text-foreground/70 hover:text-foreground"
             onClick={() => setMobileOpen(!mobileOpen)}
@@ -114,7 +130,6 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* Mobile menu */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
@@ -138,12 +153,8 @@ const Navbar = () => {
                     {servicesOpen && (
                       <div className="ml-4 space-y-1">
                         {link.children.map((child) => (
-                          <Link
-                            key={child.path}
-                            to={child.path}
-                            onClick={() => setMobileOpen(false)}
-                            className="block px-4 py-2 text-sm text-foreground/60 hover:text-foreground rounded-lg"
-                          >
+                          <Link key={child.path} to={child.path} onClick={() => setMobileOpen(false)}
+                            className="block px-4 py-2 text-sm text-foreground/60 hover:text-foreground rounded-lg">
                             {child.label}
                           </Link>
                         ))}
@@ -151,20 +162,14 @@ const Navbar = () => {
                     )}
                   </div>
                 ) : (
-                  <Link
-                    key={link.path}
-                    to={link.path!}
-                    onClick={() => setMobileOpen(false)}
-                    className="block px-4 py-2.5 text-sm font-medium text-foreground/80 hover:text-foreground rounded-lg"
-                  >
+                  <Link key={link.path} to={link.path!} onClick={() => setMobileOpen(false)}
+                    className="block px-4 py-2.5 text-sm font-medium text-foreground/80 hover:text-foreground rounded-lg">
                     {link.label}
                   </Link>
                 )
               )}
               <Link to="/book" onClick={() => setMobileOpen(false)}>
-                <Button variant="accent" className="w-full mt-2">
-                  Book Now
-                </Button>
+                <Button variant="accent" className="w-full mt-2">Book Now</Button>
               </Link>
             </div>
           </motion.div>
