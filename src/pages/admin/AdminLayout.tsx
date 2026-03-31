@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const sidebarLinks = [
   { label: "Overview", path: "/admin", icon: LayoutDashboard },
-  { label: "Bookings", path: "/admin", icon: CalendarCheck },
+  // { label: "Bookings", path: "/admin", icon: CalendarCheck },
   { label: "Drivers", path: "/admin/drivers", icon: Users },
   { label: "Fleet", path: "/admin/fleet", icon: Truck },
 ];
