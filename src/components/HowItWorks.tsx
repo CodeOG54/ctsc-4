@@ -5,17 +5,20 @@ const steps = [
   {
     icon: MapPin,
     title: "Create Your Route",
-    description: "Enter your pickup and dropoff locations, or book by the hour for flexible travel.",
+    description:
+      "Enter your pickup and dropoff locations, or book by the hour for flexible travel.",
   },
   {
     icon: Car,
     title: "Choose Your Vehicle",
-    description: "Browse our premium fleet and select the perfect vehicle for your journey.",
+    description:
+      "Browse our premium fleet and select the perfect vehicle for your journey.",
   },
   {
     icon: Smile,
     title: "Enjoy The Journey",
-    description: "Sit back and relax while our professional drivers get you there safely.",
+    description:
+      "Sit back and relax while our professional drivers get you there safely.",
   },
 ];
 
@@ -30,13 +33,19 @@ const HowItWorks = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <span className="text-sm font-semibold tracking-wider uppercase text-accent">How It Works</span>
+          <span className="text-sm font-semibold tracking-wider uppercase text-accent">
+            How It Works
+          </span>
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mt-2">
             Book in 3 Simple Steps
           </h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto mt-4 text-base">
+            Booking your ride with Cape Town Rides is quick and easy. Just
+            follow these simple steps to get on the road in no time.
+          </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {steps.map((step, i) => (
             <motion.div
               key={step.title}
@@ -54,8 +63,12 @@ const HowItWorks = () => {
                   {i + 1}
                 </span>
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">{step.title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                {step.title}
+              </h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {step.description}
+              </p>
             </motion.div>
           ))}
         </div>

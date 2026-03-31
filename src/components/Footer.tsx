@@ -61,20 +61,23 @@ const Footer = () => {
             <h4 className="font-semibold mb-4">Contact</h4>
             <ul className="space-y-3">
               <li className="flex items-center gap-2 text-sm text-primary-foreground/60">
-                <Phone className="w-4 h-4 text-accent" /> +27 21 000 0000
+                <Phone className="w-4 h-4 text-accent" /> 021 300 5297
               </li>
               <li className="flex items-center gap-2 text-sm text-primary-foreground/60">
-                <Mail className="w-4 h-4 text-accent" /> info@ctshuttle.co.za
+                <Phone className="w-4 h-4 text-accent" /> 083 766 8601
+              </li>
+              <li className="flex items-center gap-2 text-sm text-primary-foreground/60">
+                <Mail className="w-4 h-4 text-accent" /> info@shuttlecapetown.co.za
               </li>
               <li className="flex items-start gap-2 text-sm text-primary-foreground/60">
-                <MapPin className="w-4 h-4 text-accent mt-0.5" /> Cape Town, South Africa
+                <MapPin className="w-4 h-4 text-accent mt-0.5" />384 Voortrekker Rd, Maitland, Cape Town
               </li>
             </ul>
           </div>
         </div>
 
         <div className="border-t border-primary-foreground/10 mt-12 pt-8 text-center text-sm text-primary-foreground/40">
-          © {new Date().getFullYear()} Cape Town Shuttle Services. All rights reserved.
+          © {new Date().getFullYear()} Shuttle Cape Town. All rights reserved.
         </div>
       </div>
     </footer>

@@ -1,12 +1,19 @@
+import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import About from "./pages/About";
-import { AirportTransfers, ChauffeurServices, PointToPoint } from "./pages/ServicePages";
+import {
+  AirportTransfers,
+  ChauffeurServices,
+  PointToPoint,
+} from "./pages/ServicePages";
+import Services from "./pages/Services";
 import Fleet from "./pages/Fleet";
 import BookNow from "./pages/BookNow";
 import Auth from "./pages/Auth";
@@ -18,6 +25,17 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+// Scroll to top component
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -25,12 +43,17 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ScrollToTop />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/about" element={<About />} />
-            <Route path="/services/airport-transfers" element={<AirportTransfers />} />
+            <Route
+              path="/services/airport-transfers"
+              element={<AirportTransfers />}
+            />
             <Route path="/services/chauffeur" element={<ChauffeurServices />} />
             <Route path="/services/point-to-point" element={<PointToPoint />} />
+            <Route path="/services" element={<Services />} />
             <Route path="/fleet" element={<Fleet />} />
             <Route path="/book" element={<BookNow />} />
             <Route path="/auth" element={<Auth />} />
