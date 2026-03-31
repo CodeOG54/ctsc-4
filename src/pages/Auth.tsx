@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -19,10 +20,21 @@ const Auth = () => {
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
 
-  if (user) {
-    navigate("/dashboard");
-    return null;
-  }
+  useEffect(() => {
+    if (user) {
+      // Check if admin and redirect accordingly
+      const checkRole = async () => {
+        const { data } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .eq("role", "admin")
+          .maybeSingle();
+        navigate(data ? "/admin" : "/dashboard");
+      };
+      checkRole();
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,10 +44,11 @@ const Auth = () => {
       const { error } = await signIn(email, password);
       if (error) {
         toast({ title: "Login Failed", description: error.message, variant: "destructive" });
-      } else {
-        toast({ title: "Welcome back! 👋" });
-        navigate("/dashboard");
+        setLoading(false);
+        return;
       }
+      toast({ title: "Welcome back! 👋" });
+      // Redirect handled by useEffect when user state updates
     } else {
       const { error } = await signUp(email, password, fullName);
       if (error) {
