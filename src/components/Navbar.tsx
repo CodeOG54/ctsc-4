@@ -1,0 +1,177 @@
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { Menu, X, ChevronDown, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+const navLinks = [
+  { label: "Home", path: "/" },
+  { label: "About", path: "/about" },
+  {
+    label: "Services",
+    children: [
+      { label: "Airport Transfers", path: "/services/airport-transfers" },
+      { label: "Chauffeur Services", path: "/services/chauffeur" },
+      { label: "Point-to-Point", path: "/services/point-to-point" },
+    ],
+  },
+  { label: "Fleet", path: "/fleet" },
+];
+
+const Navbar = () => {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [servicesOpen, setServicesOpen] = useState(false);
+  const location = useLocation();
+
+  return (
+    <motion.header
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="fixed top-4 left-4 right-4 z-50 glass rounded-2xl"
+    >
+      <nav className="container mx-auto flex items-center justify-between px-6 py-3">
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center">
+            <span className="text-accent-foreground font-bold text-sm">CT</span>
+          </div>
+          <span className="font-bold text-lg text-foreground hidden sm:block">
+            Cape Town Shuttle
+          </span>
+        </Link>
+
+        {/* Desktop Nav */}
+        <div className="hidden lg:flex items-center gap-1">
+          {navLinks.map((link) =>
+            link.children ? (
+              <div
+                key={link.label}
+                className="relative"
+                onMouseEnter={() => setServicesOpen(true)}
+                onMouseLeave={() => setServicesOpen(false)}
+              >
+                <button className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-foreground/80 hover:text-foreground rounded-lg transition-colors">
+                  {link.label}
+                  <ChevronDown className="w-3.5 h-3.5" />
+                </button>
+                <AnimatePresence>
+                  {servicesOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 8 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute top-full left-0 mt-1 w-56 glass rounded-xl p-2"
+                    >
+                      {link.children.map((child) => (
+                        <Link
+                          key={child.path}
+                          to={child.path}
+                          className="block px-4 py-2.5 text-sm text-foreground/80 hover:text-foreground hover:bg-accent/10 rounded-lg transition-colors"
+                        >
+                          {child.label}
+                        </Link>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <Link
+                key={link.path}
+                to={link.path!}
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  location.pathname === link.path
+                    ? "text-foreground bg-secondary"
+                    : "text-foreground/80 hover:text-foreground"
+                }`}
+              >
+                {link.label}
+              </Link>
+            )
+          )}
+        </div>
+
+        {/* Right section */}
+        <div className="flex items-center gap-3">
+          <Link to="/book" className="hidden sm:block">
+            <Button variant="accent" size="sm">
+              Book Now
+            </Button>
+          </Link>
+          <Link to="/auth">
+            <Button variant="ghost" size="icon" className="text-foreground/70 hover:text-foreground">
+              <User className="w-5 h-5" />
+            </Button>
+          </Link>
+          <button
+            className="lg:hidden text-foreground/70 hover:text-foreground"
+            onClick={() => setMobileOpen(!mobileOpen)}
+          >
+            {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
+      </nav>
+
+      {/* Mobile menu */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="lg:hidden overflow-hidden border-t border-border/50"
+          >
+            <div className="px-6 py-4 space-y-1">
+              {navLinks.map((link) =>
+                link.children ? (
+                  <div key={link.label}>
+                    <button
+                      onClick={() => setServicesOpen(!servicesOpen)}
+                      className="w-full flex items-center justify-between px-4 py-2.5 text-sm font-medium text-foreground/80 hover:text-foreground rounded-lg"
+                    >
+                      {link.label}
+                      <ChevronDown className={`w-4 h-4 transition-transform ${servicesOpen ? "rotate-180" : ""}`} />
+                    </button>
+                    {servicesOpen && (
+                      <div className="ml-4 space-y-1">
+                        {link.children.map((child) => (
+                          <Link
+                            key={child.path}
+                            to={child.path}
+                            onClick={() => setMobileOpen(false)}
+                            className="block px-4 py-2 text-sm text-foreground/60 hover:text-foreground rounded-lg"
+                          >
+                            {child.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <Link
+                    key={link.path}
+                    to={link.path!}
+                    onClick={() => setMobileOpen(false)}
+                    className="block px-4 py-2.5 text-sm font-medium text-foreground/80 hover:text-foreground rounded-lg"
+                  >
+                    {link.label}
+                  </Link>
+                )
+              )}
+              <Link to="/book" onClick={() => setMobileOpen(false)}>
+                <Button variant="accent" className="w-full mt-2">
+                  Book Now
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.header>
+  );
+};
+
+export default Navbar;
