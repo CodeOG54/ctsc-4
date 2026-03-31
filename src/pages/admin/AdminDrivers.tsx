@@ -1,0 +1,181 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Users, Plus, Edit2, Trash2, Phone, Mail } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
+import { useAdminCheck } from "@/hooks/useAdminCheck";
+import { useToast } from "@/hooks/use-toast";
+import AdminLayout from "./AdminLayout";
+
+interface Driver {
+  id: string;
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+  license_number: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+const AdminDrivers = () => {
+  const { user, loading: authLoading } = useAuth();
+  const { isAdmin, loading: adminLoading } = useAdminCheck();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState({ full_name: "", email: "", phone: "", license_number: "" });
+
+  useEffect(() => {
+    if (!authLoading && !adminLoading) {
+      if (!user) navigate("/auth");
+      else if (!isAdmin) navigate("/dashboard");
+    }
+  }, [user, isAdmin, authLoading, adminLoading, navigate]);
+
+  const fetchDrivers = async () => {
+    const { data } = await supabase.from("drivers").select("*").order("created_at", { ascending: false });
+    setDrivers(data || []);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (isAdmin) fetchDrivers();
+  }, [isAdmin]);
+
+  const resetForm = () => {
+    setForm({ full_name: "", email: "", phone: "", license_number: "" });
+    setEditingId(null);
+    setShowForm(false);
+  };
+
+  const handleSave = async () => {
+    if (!form.full_name.trim()) {
+      toast({ title: "Name required", variant: "destructive" });
+      return;
+    }
+
+    if (editingId) {
+      await supabase.from("drivers").update(form).eq("id", editingId);
+      toast({ title: "Driver updated" });
+    } else {
+      await supabase.from("drivers").insert(form);
+      toast({ title: "Driver added" });
+    }
+    resetForm();
+    fetchDrivers();
+  };
+
+  const handleEdit = (driver: Driver) => {
+    setForm({
+      full_name: driver.full_name,
+      email: driver.email || "",
+      phone: driver.phone || "",
+      license_number: driver.license_number || "",
+    });
+    setEditingId(driver.id);
+    setShowForm(true);
+  };
+
+  const toggleActive = async (id: string, current: boolean) => {
+    await supabase.from("drivers").update({ is_active: !current }).eq("id", id);
+    fetchDrivers();
+  };
+
+  if (authLoading || adminLoading || !isAdmin) return null;
+
+  return (
+    <AdminLayout>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Drivers</h1>
+            <p className="text-muted-foreground mt-1">Manage your driver roster</p>
+          </div>
+          <Button variant="accent" className="gap-2" onClick={() => { resetForm(); setShowForm(true); }}>
+            <Plus className="w-4 h-4" /> Add Driver
+          </Button>
+        </div>
+
+        {/* Add/Edit Form */}
+        {showForm && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+            className="rounded-xl bg-card border border-border p-6 space-y-4">
+            <h3 className="font-semibold text-foreground">{editingId ? "Edit Driver" : "New Driver"}</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Full Name *</Label>
+                <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Email</Label>
+                <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Phone</Label>
+                <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>License Number</Label>
+                <Input value={form.license_number} onChange={(e) => setForm({ ...form, license_number: e.target.value })} />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="accent" onClick={handleSave}>{editingId ? "Update" : "Add"} Driver</Button>
+              <Button variant="outline" onClick={resetForm}>Cancel</Button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Drivers List */}
+        {loading ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map(i => <div key={i} className="h-20 rounded-xl bg-secondary animate-pulse" />)}
+          </div>
+        ) : drivers.length === 0 ? (
+          <div className="text-center py-16 rounded-2xl bg-card border border-border">
+            <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">No drivers yet.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {drivers.map((driver) => (
+              <motion.div key={driver.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                className="rounded-xl bg-card border border-border p-5 flex items-center justify-between">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-foreground">{driver.full_name}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-xs ${driver.is_active ? "bg-green-500/10 text-green-600" : "bg-destructive/10 text-destructive"}`}>
+                      {driver.is_active ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    {driver.email && <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {driver.email}</span>}
+                    {driver.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> {driver.phone}</span>}
+                    {driver.license_number && <span>License: {driver.license_number}</span>}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="icon" onClick={() => handleEdit(driver)}>
+                    <Edit2 className="w-4 h-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => toggleActive(driver.id, driver.is_active)}>
+                    <Trash2 className="w-4 h-4 text-muted-foreground" />
+                  </Button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </div>
+    </AdminLayout>
+  );
+};
+
+export default AdminDrivers;

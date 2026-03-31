@@ -11,6 +11,9 @@ import Fleet from "./pages/Fleet";
 import BookNow from "./pages/BookNow";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminDrivers from "./pages/admin/AdminDrivers";
+import AdminFleet from "./pages/admin/AdminFleet";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +35,9 @@ const App = () => (
             <Route path="/book" element={<BookNow />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/drivers" element={<AdminDrivers />} />
+            <Route path="/admin/fleet" element={<AdminFleet />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
