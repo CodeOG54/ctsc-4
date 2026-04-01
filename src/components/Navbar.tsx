@@ -20,6 +20,7 @@ const navLinks = [
     ],
   },
   { label: "Fleet", path: "/fleet" },
+  { label: "Contact", path: "/contact" },
 ];
 
 const Navbar = () => {

@@ -8,6 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import About from "./pages/About";
+import Contact from "./pages/Contact";
 import {
   AirportTransfers,
   ChauffeurServices,
@@ -47,6 +48,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
             <Route
               path="/services/airport-transfers"
               element={<AirportTransfers />}
