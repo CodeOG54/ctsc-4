@@ -10,7 +10,7 @@ const Footer = () => {
           {/* Brand */}
           <div>
             <div className="mb-4">
-              <img src={logo} alt="CTSC Travel" className="h-10 w-auto brightness-0 invert" />
+              <img src={logo} alt="CTSC Travel" className="h-10 w-auto" />
             </div>
             <p className="text-sm text-primary-foreground/60 leading-relaxed">
               Premium shuttle and transport services across the Cape Town area.
