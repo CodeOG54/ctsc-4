@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, CalendarCheck, Users, Truck, LogOut, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import logo from "@/assets/logo.png";
 
 const sidebarLinks = [
   { label: "Overview", path: "/admin", icon: LayoutDashboard },
@@ -22,10 +23,8 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
       <aside className="w-64 border-r border-border bg-card hidden lg:flex flex-col">
         <div className="p-6 border-b border-border">
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center">
-              <span className="text-accent-foreground font-bold text-sm">CT</span>
-            </div>
-            <span className="font-bold text-foreground">Admin Panel</span>
+            <img src={logo} alt="CTSC Travel" className="h-8 w-auto" />
+            <span className="font-bold text-foreground">Admin</span>
           </Link>
         </div>
         <nav className="flex-1 p-4 space-y-1">
@@ -58,9 +57,7 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
       <div className="flex-1 flex flex-col">
         <header className="lg:hidden flex items-center justify-between p-4 border-b border-border bg-card">
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center">
-              <span className="text-accent-foreground font-bold text-xs">CT</span>
-            </div>
+            <img src={logo} alt="CTSC Travel" className="h-7 w-auto" />
             <span className="font-bold text-sm text-foreground">Admin</span>
           </Link>
           <div className="flex gap-2">

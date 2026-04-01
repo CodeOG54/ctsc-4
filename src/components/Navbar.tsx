@@ -5,7 +5,7 @@ import { Menu, X, ChevronDown, User, LogOut, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
-import path from "path";
+import logo from "@/assets/logo.png";
 
 const navLinks = [
   { label: "Home", path: "/" },
@@ -44,12 +44,7 @@ const Navbar = () => {
     >
       <nav className="container mx-auto flex items-center justify-between px-6 py-3">
         <Link to="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center">
-            <span className="text-accent-foreground font-bold text-sm">CT</span>
-          </div>
-          <span className="font-bold text-lg text-foreground hidden sm:block">
-            Cape Town Shuttle
-          </span>
+          <img src={logo} alt="CTSC Travel" className="h-8 w-auto" />
         </Link>
 
         <div className="hidden lg:flex items-center gap-1">
