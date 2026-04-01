@@ -1,248 +1,616 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Clock, Calendar, Check, ArrowRight, ArrowLeft, Users } from "lucide-react";
+import {
+  Loader2,
+  Check,
+  MapPin,
+  Clock,
+  Calendar,
+  Phone,
+  Mail,
+  Users,
+  Plane,
+  FileText,
+  Plus,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { vehicles } from "@/components/FleetPreview";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 
+interface Vehicle {
+  id: string;
+  name: string;
+  capacity: number;
+  price_per_km: number;
+  price_per_hour: number;
+}
+
 const BookingForm = () => {
-  const [step, setStep] = useState(1);
-  const [bookingType, setBookingType] = useState<"transfer" | "hourly">("transfer");
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [submitting, setSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
-    pickup: "",
-    dropoff: "",
-    hours: 2,
-    date: "",
-    time: "",
-    vehicleId: "",
-  });
+  const [showReturnTrip, setShowReturnTrip] = useState(false);
+  const [loadingVehicles, setLoadingVehicles] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const selectedVehicle = vehicles.find((v) => v.id === formData.vehicleId);
-  const canProceedStep1 = formData.pickup && formData.date && formData.time && (bookingType === "hourly" || formData.dropoff);
-  const canProceedStep2 = !!formData.vehicleId;
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    countryCode: "+27",
+    numPassengers: 1,
+    tripType: "airport_transfers",
+    pickupAddress: "",
+    dropoffAddress: "",
+    pickupDate: "",
+    pickupTime: "",
+    returnAddress: "",
+    returnDropoffAddress: "",
+    returnDate: "",
+    returnTime: "",
+    flightNumber: "",
+    vehicleId: "",
+    extraDetails: "",
+  });
 
-  const handleConfirm = async () => {
+  useEffect(() => {
+    fetchVehicles();
+    if (user) {
+      fetchUserProfile();
+    }
+  }, [user]);
+
+  const fetchVehicles = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("vehicles")
+        .select("*")
+        .eq("is_active", true);
+      if (error) throw error;
+      setVehicles(data || []);
+    } catch (error) {
+      console.error("Error fetching vehicles:", error);
+      toast({
+        title: "Error",
+        description: "Could not load vehicles. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingVehicles(false);
+    }
+  };
+
+  const fetchUserProfile = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("full_name, phone")
+        .eq("id", user.id)
+        .single();
+      if (error) throw error;
+      if (data) {
+        setFormData((prev) => ({
+          ...prev,
+          fullName: data.full_name || "",
+          phone: data.phone || "",
+          email: user.email || "",
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    }
+  };
+
+  const handleChange = (name: string, value: string | number) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
     if (!user) {
-      toast({ title: "Please sign in", description: "You need an account to book.", variant: "destructive" });
+      toast({
+        title: "Please sign in",
+        description: "You need an account to book.",
+        variant: "destructive",
+      });
       navigate("/auth");
       return;
     }
 
+    if (
+      !formData.fullName ||
+      !formData.email ||
+      !formData.phone ||
+      !formData.pickupAddress ||
+      !formData.dropoffAddress ||
+      !formData.pickupDate ||
+      !formData.pickupTime ||
+      !formData.vehicleId
+    ) {
+      toast({
+        title: "Missing required fields",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.tripType === "other" && !formData.extraDetails) {
+      toast({
+        title: "Details required",
+        description: "Please provide details about your custom trip type.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setSubmitting(true);
-    const estimatedPrice = selectedVehicle && bookingType === "hourly"
-      ? selectedVehicle.pricePerHour * formData.hours
-      : null;
 
-    const { error } = await supabase.from("bookings").insert({
-      user_id: user.id,
-      vehicle_id: formData.vehicleId,
-      booking_type: bookingType,
-      pickup_location: formData.pickup,
-      dropoff_location: bookingType === "transfer" ? formData.dropoff : null,
-      hours: bookingType === "hourly" ? formData.hours : null,
-      pickup_date: formData.date,
-      pickup_time: formData.time,
-      estimated_price: estimatedPrice,
-      status: "pending",
-    });
+    try {
+      // Update user profile with latest info
+      await supabase.from("profiles").upsert({
+        id: user.id,
+        full_name: formData.fullName,
+        phone: formData.countryCode + formData.phone,
+        updated_at: new Date().toISOString(),
+      });
 
-    setSubmitting(false);
+      // Prepare booking data
+      const selectedVehicle = vehicles.find((v) => v.id === formData.vehicleId);
+      const priceEstimate =
+        formData.tripType === "airport_transfers"
+          ? selectedVehicle?.price_per_km || 0
+          : selectedVehicle?.price_per_hour || 0;
 
-    if (error) {
-      toast({ title: "Booking Failed", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Booking Submitted! 🎉", description: "Your booking is pending confirmation." });
-      setStep(1);
-      setFormData({ pickup: "", dropoff: "", hours: 2, date: "", time: "", vehicleId: "" });
+      // Store return trip and extra details as JSON in notes
+      const bookingNotes = {
+        numPassengers: formData.numPassengers,
+        flightNumber: formData.flightNumber,
+        extraDetails: formData.extraDetails,
+        returnTrip: showReturnTrip
+          ? {
+              pickupAddress: formData.returnAddress,
+              dropoffAddress: formData.returnDropoffAddress,
+              date: formData.returnDate,
+              time: formData.returnTime,
+            }
+          : null,
+      };
+
+      // Map trip types to service types
+      const serviceTypeMap: { [key: string]: string } = {
+        airport_transfers: "airport_transfer",
+        shuttle_service: "point_to_point",
+        cape_town_tour: "point_to_point",
+        other: "point_to_point",
+      };
+
+      const { error } = await supabase.from("bookings").insert({
+        user_id: user.id,
+        vehicle_id: formData.vehicleId,
+        service_type: serviceTypeMap[formData.tripType] || "point_to_point",
+        booking_type: "transfer",
+        pickup_location: formData.pickupAddress,
+        dropoff_location: formData.dropoffAddress,
+        pickup_date: formData.pickupDate,
+        pickup_time: formData.pickupTime,
+        status: "pending",
+        price_estimate: priceEstimate,
+        notes: JSON.stringify(bookingNotes),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Booking Submitted! 🎉",
+        description:
+          "Your booking is pending confirmation. Check your dashboard.",
+      });
+
+      // Reset form
+      setFormData({
+        fullName: "",
+        email: "",
+        phone: "",
+        countryCode: "+27",
+        numPassengers: 1,
+        tripType: "point_to_point",
+        pickupAddress: "",
+        dropoffAddress: "",
+        pickupDate: "",
+        pickupTime: "",
+        returnAddress: "",
+        returnDropoffAddress: "",
+        returnDate: "",
+        returnTime: "",
+        flightNumber: "",
+        vehicleId: "",
+        extraDetails: "",
+      });
+      setShowReturnTrip(false);
+
       navigate("/dashboard");
+    } catch (error) {
+      console.error("Booking error:", error);
+      toast({
+        title: "Booking Failed",
+        description:
+          error instanceof Error ? error.message : "Something went wrong.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      {/* Steps indicator */}
-      <div className="flex items-center justify-center gap-2 mb-10">
-        {[1, 2, 3].map((s) => (
-          <div key={s} className="flex items-center gap-2">
-            <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${
-              step >= s ? "bg-accent text-accent-foreground" : "bg-secondary text-muted-foreground"
-            }`}>
-              {step > s ? <Check className="w-4 h-4" /> : s}
+    <form onSubmit={handleSubmit} className="space-y-8">
+      <div className="bg-card border border-border rounded-2xl p-8">
+        {/* Personal Details Section */}
+        <div className="mb-8">
+          <h3 className="text-xl font-bold text-foreground mb-6">
+            Your Details
+          </h3>
+          <div className="grid sm:grid-cols-2 gap-5">
+            <div>
+              <Label className="text-sm font-medium text-foreground mb-2 block">
+                Full Name *
+              </Label>
+              <Input
+                value={formData.fullName}
+                onChange={(e) => handleChange("fullName", e.target.value)}
+                placeholder="Enter your full name"
+                className="h-11"
+                required
+              />
             </div>
-            {s < 3 && <div className={`w-12 h-0.5 ${step > s ? "bg-accent" : "bg-border"}`} />}
-          </div>
-        ))}
-      </div>
-
-      <AnimatePresence mode="wait">
-        {step === 1 && (
-          <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-            <h3 className="text-2xl font-bold text-foreground">Create Your Route</h3>
-            <div className="flex gap-2 p-1 bg-secondary rounded-xl">
-              {(["transfer", "hourly"] as const).map((type) => (
-                <button key={type} onClick={() => setBookingType(type)}
-                  className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
-                    bookingType === type ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                  }`}>
-                  {type === "transfer" ? "Point-to-Point" : "Book by Hours"}
-                </button>
-              ))}
+            <div>
+              <Label className="text-sm font-medium text-foreground mb-2 block">
+                Email *
+              </Label>
+              <Input
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleChange("email", e.target.value)}
+                placeholder="your@email.com"
+                className="h-11"
+                required
+              />
             </div>
-            <div className="space-y-4">
-              <div>
-                <Label className="text-sm font-medium text-foreground mb-1.5 flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-accent" /> Pickup Location
-                </Label>
-                <Input placeholder="e.g. Cape Town International Airport" value={formData.pickup}
-                  onChange={(e) => setFormData({ ...formData, pickup: e.target.value })} className="h-12" />
+            <div>
+              <Label className="text-sm font-medium text-foreground mb-2 block">
+                Phone Number *
+              </Label>
+              <div className="flex gap-2">
+                <Select
+                  value={formData.countryCode}
+                  onValueChange={(value) => handleChange("countryCode", value)}
+                >
+                  <SelectTrigger className="w-24 h-11">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="+27">+27</SelectItem>
+                    <SelectItem value="+44">+44</SelectItem>
+                    <SelectItem value="+33">+33</SelectItem>
+                    <SelectItem value="+1">+1</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => handleChange("phone", e.target.value)}
+                  placeholder="21 300 5297"
+                  className="flex-1 h-11"
+                  required
+                />
               </div>
-              {bookingType === "transfer" ? (
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-foreground mb-2 block">
+                Number of Passengers *
+              </Label>
+              <Input
+                type="number"
+                min="1"
+                max="8"
+                value={formData.numPassengers}
+                onChange={(e) =>
+                  handleChange("numPassengers", parseInt(e.target.value))
+                }
+                className="h-11"
+                required
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Trip Details Section */}
+        <div className="mb-8 border-t border-border pt-8">
+          <h3 className="text-xl font-bold text-foreground mb-6">
+            Trip Details
+          </h3>
+
+          <div className="mb-6">
+            <Label className="text-sm font-medium text-foreground mb-3 block">
+              Select Trip Type *
+            </Label>
+            <Select
+              value={formData.tripType}
+              onValueChange={(value) => handleChange("tripType", value)}
+            >
+              <SelectTrigger className="h-11">
+                <SelectValue placeholder="Choose a trip type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="airport_transfers">
+                  Airport Transfers
+                </SelectItem>
+                <SelectItem value="shuttle_service">Shuttle Service</SelectItem>
+                <SelectItem value="cape_town_tour">Cape Town Tour</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-5 mb-5">
+            <div>
+              <Label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-accent" /> Pickup Address *
+              </Label>
+              <Input
+                value={formData.pickupAddress}
+                onChange={(e) => handleChange("pickupAddress", e.target.value)}
+                placeholder="e.g., Cape Town International Airport"
+                className="h-11"
+                required
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-accent" /> Drop-off Address *
+              </Label>
+              <Input
+                value={formData.dropoffAddress}
+                onChange={(e) => handleChange("dropoffAddress", e.target.value)}
+                placeholder="e.g., Hotel or destination"
+                className="h-11"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-5">
+            <div>
+              <Label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-accent" /> Pickup Date *
+              </Label>
+              <Input
+                type="date"
+                value={formData.pickupDate}
+                onChange={(e) => handleChange("pickupDate", e.target.value)}
+                className="h-11"
+                required
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-2">
+                <Clock className="w-4 h-4 text-accent" /> Pickup Time *
+              </Label>
+              <Input
+                type="time"
+                value={formData.pickupTime}
+                onChange={(e) => handleChange("pickupTime", e.target.value)}
+                className="h-11"
+                required
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Return Trip Section */}
+        <div className="mb-8 border-t border-border pt-8">
+          <button
+            type="button"
+            onClick={() => setShowReturnTrip(!showReturnTrip)}
+            className="flex items-center gap-2 text-accent font-medium mb-6 hover:text-accent/80 transition"
+          >
+            {showReturnTrip ? (
+              <>
+                <X className="w-4 h-4" /> Remove Return Trip
+              </>
+            ) : (
+              <>
+                <Plus className="w-4 h-4" /> Add Return Trip (Optional)
+              </>
+            )}
+          </button>
+
+          {showReturnTrip && (
+            <div className="space-y-5 p-5 bg-background/50 rounded-lg border border-border">
+              <div className="grid sm:grid-cols-2 gap-5">
                 <div>
-                  <Label className="text-sm font-medium text-foreground mb-1.5 flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-accent" /> Drop-off Location
+                  <Label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-accent" /> Return Pickup
+                    Address
                   </Label>
-                  <Input placeholder="e.g. V&A Waterfront Hotel" value={formData.dropoff}
-                    onChange={(e) => setFormData({ ...formData, dropoff: e.target.value })} className="h-12" />
+                  <Input
+                    value={formData.returnAddress}
+                    onChange={(e) =>
+                      handleChange("returnAddress", e.target.value)
+                    }
+                    placeholder="e.g., Hotel"
+                    className="h-11"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-accent" /> Return Drop-off
+                    Address
+                  </Label>
+                  <Input
+                    value={formData.returnDropoffAddress}
+                    onChange={(e) =>
+                      handleChange("returnDropoffAddress", e.target.value)
+                    }
+                    placeholder="e.g., Airport"
+                    className="h-11"
+                  />
+                </div>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-5">
+                <div>
+                  <Label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-accent" /> Return Date
+                  </Label>
+                  <Input
+                    type="date"
+                    value={formData.returnDate}
+                    onChange={(e) => handleChange("returnDate", e.target.value)}
+                    className="h-11"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-accent" /> Return Time
+                  </Label>
+                  <Input
+                    type="time"
+                    value={formData.returnTime}
+                    onChange={(e) => handleChange("returnTime", e.target.value)}
+                    className="h-11"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Flight & Vehicle Section */}
+        <div className="mb-8 border-t border-border pt-8">
+          <h3 className="text-xl font-bold text-foreground mb-6">
+            Additional Information
+          </h3>
+
+          <div className="grid sm:grid-cols-2 gap-5 mb-5">
+            <div>
+              <Label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-2">
+                <Plane className="w-4 h-4 text-accent" /> Flight Number
+                (Optional)
+              </Label>
+              <Input
+                value={formData.flightNumber}
+                onChange={(e) => handleChange("flightNumber", e.target.value)}
+                placeholder="e.g., SA123"
+                className="h-11"
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-foreground mb-2 block">
+                Preferred Vehicle *
+              </Label>
+              {loadingVehicles ? (
+                <div className="h-11 flex items-center justify-center bg-background rounded-lg border border-border">
+                  <Loader2 className="w-4 h-4 animate-spin" />
                 </div>
               ) : (
-                <div>
-                  <Label className="text-sm font-medium text-foreground mb-1.5 flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-accent" /> Number of Hours
-                  </Label>
-                  <Input type="number" min={1} max={24} value={formData.hours}
-                    onChange={(e) => setFormData({ ...formData, hours: parseInt(e.target.value) || 1 })} className="h-12" />
-                </div>
+                <Select
+                  value={formData.vehicleId}
+                  onValueChange={(value) => handleChange("vehicleId", value)}
+                >
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder="Select a vehicle" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {vehicles.map((vehicle) => (
+                      <SelectItem key={vehicle.id} value={vehicle.id}>
+                        {vehicle.name} ({vehicle.capacity} passengers)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               )}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium text-foreground mb-1.5 flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-accent" /> Date
-                  </Label>
-                  <Input type="date" value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="h-12" />
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-foreground mb-1.5 flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-accent" /> Time
-                  </Label>
-                  <Input type="time" value={formData.time}
-                    onChange={(e) => setFormData({ ...formData, time: e.target.value })} className="h-12" />
-                </div>
-              </div>
             </div>
-            <Button variant="accent" size="lg" className="w-full gap-2" disabled={!canProceedStep1} onClick={() => setStep(2)}>
-              Choose Vehicle <ArrowRight className="w-4 h-4" />
-            </Button>
-          </motion.div>
-        )}
+          </div>
+        </div>
 
-        {step === 2 && (
-          <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-            <h3 className="text-2xl font-bold text-foreground">Choose Your Vehicle</h3>
-            <div className="space-y-4">
-              {vehicles.map((vehicle) => (
-                <button key={vehicle.id} onClick={() => setFormData({ ...formData, vehicleId: vehicle.id })}
-                  className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left ${
-                    formData.vehicleId === vehicle.id ? "border-accent bg-accent/5 shadow-lg shadow-accent/10" : "border-border hover:border-accent/30"
-                  }`}>
-                  <img src={vehicle.image} alt={vehicle.name} className="w-24 h-16 object-cover rounded-lg" loading="lazy" />
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-semibold text-foreground">{vehicle.name}</h4>
-                      <span className="flex items-center gap-1 text-xs text-muted-foreground"><Users className="w-3 h-3" /> {vehicle.capacity}</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{vehicle.description}</p>
-                    <p className="text-sm font-semibold text-accent mt-1">
-                      {bookingType === "hourly" ? `R${vehicle.pricePerHour * formData.hours} (${formData.hours}hrs)` : `From R${vehicle.pricePerKm}/km`}
-                    </p>
-                  </div>
-                  {formData.vehicleId === vehicle.id && (
-                    <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center">
-                      <Check className="w-3.5 h-3.5 text-accent-foreground" />
-                    </div>
-                  )}
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-3">
-              <Button variant="outline" size="lg" className="gap-2" onClick={() => setStep(1)}>
-                <ArrowLeft className="w-4 h-4" /> Back
-              </Button>
-              <Button variant="accent" size="lg" className="flex-1 gap-2" disabled={!canProceedStep2} onClick={() => setStep(3)}>
-                Review Booking <ArrowRight className="w-4 h-4" />
-              </Button>
-            </div>
-          </motion.div>
-        )}
+        {/* Extra Details Section */}
+        <div className="border-t border-border pt-8">
+          <Label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-2">
+            <FileText className="w-4 h-4 text-accent" /> Extra Details
+            {formData.tripType === "other" && (
+              <span className="text-red-500">*</span>
+            )}
+          </Label>
+          <Textarea
+            value={formData.extraDetails}
+            onChange={(e) => handleChange("extraDetails", e.target.value)}
+            placeholder={
+              formData.tripType === "other"
+                ? "Please describe your trip type and requirements..."
+                : "Flight details, special requirements, luggage info, etc."
+            }
+            rows={4}
+            className="resize-none"
+          />
+          <p className="text-xs text-muted-foreground mt-2">
+            {formData.tripType === "other"
+              ? "Required - Please provide details about your custom trip type"
+              : "Tell us anything else we should know about your booking"}
+          </p>
+        </div>
+      </div>
 
-        {step === 3 && (
-          <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-            <h3 className="text-2xl font-bold text-foreground">Confirm Booking</h3>
-            <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
-              <div className="flex items-center gap-4 pb-4 border-b border-border">
-                {selectedVehicle && (
-                  <>
-                    <img src={selectedVehicle.image} alt={selectedVehicle.name} className="w-20 h-14 object-cover rounded-lg" />
-                    <div>
-                      <h4 className="font-semibold text-foreground">{selectedVehicle.name}</h4>
-                      <p className="text-sm text-muted-foreground">Up to {selectedVehicle.capacity} passengers</p>
-                    </div>
-                  </>
-                )}
-              </div>
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Type</span>
-                  <span className="font-medium text-foreground">{bookingType === "hourly" ? "Hourly Booking" : "Transfer"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Pickup</span>
-                  <span className="font-medium text-foreground">{formData.pickup}</span>
-                </div>
-                {bookingType === "transfer" ? (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Drop-off</span>
-                    <span className="font-medium text-foreground">{formData.dropoff}</span>
-                  </div>
-                ) : (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Duration</span>
-                    <span className="font-medium text-foreground">{formData.hours} hours</span>
-                  </div>
-                )}
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Date & Time</span>
-                  <span className="font-medium text-foreground">{formData.date} at {formData.time}</span>
-                </div>
-                {selectedVehicle && bookingType === "hourly" && (
-                  <div className="flex justify-between pt-3 border-t border-border">
-                    <span className="font-semibold text-foreground">Estimated Total</span>
-                    <span className="font-bold text-accent text-lg">R{selectedVehicle.pricePerHour * formData.hours}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <Button variant="outline" size="lg" className="gap-2" onClick={() => setStep(2)}>
-                <ArrowLeft className="w-4 h-4" /> Back
-              </Button>
-              <Button variant="hero" size="lg" className="flex-1" onClick={handleConfirm} disabled={submitting}>
-                {submitting ? "Submitting..." : "Confirm Booking"}
-              </Button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+      {/* Submit Button */}
+      <div className="flex gap-3">
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          onClick={() => navigate("/")}
+        >
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          size="lg"
+          disabled={submitting || loadingVehicles}
+          className="flex-1 gap-2"
+        >
+          {submitting ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Booking...
+            </>
+          ) : (
+            <>
+              <Check className="w-4 h-4" />
+              Book Now
+            </>
+          )}
+        </Button>
+      </div>
+    </form>
   );
 };
 
