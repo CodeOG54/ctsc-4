@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, CalendarCheck, Users, Truck, LogOut, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import logo from "@/assets/logo.png";
 
 const sidebarLinks = [
   { label: "Overview", path: "/admin", icon: LayoutDashboard },
