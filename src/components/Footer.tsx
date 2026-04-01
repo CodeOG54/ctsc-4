@@ -9,11 +9,8 @@ const Footer = () => {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand */}
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center">
-                <span className="text-accent-foreground font-bold text-sm">CT</span>
-              </div>
-              <span className="font-bold text-lg">Cape Town Shuttle</span>
+            <div className="mb-4">
+              <img src={logo} alt="CTSC Travel" className="h-10 w-auto brightness-0 invert" />
             </div>
             <p className="text-sm text-primary-foreground/60 leading-relaxed">
               Premium shuttle and transport services across the Cape Town area.
