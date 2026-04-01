@@ -235,12 +235,12 @@ const BookingForm = () => {
 
       // Reset form
       setFormData({
-        fullName: "airport_transfers",
+        fullName: "",
         email: "",
         phone: "",
         countryCode: "+27",
         numPassengers: 1,
-        tripType: "point_to_point",
+        tripType: "airport_transfers",
         pickupAddress: "",
         dropoffAddress: "",
         pickupDate: "",
