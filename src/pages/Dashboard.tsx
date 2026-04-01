@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Calendar, Clock, MapPin, Car, Star, LogOut } from "lucide-react";
+import { Calendar, Clock, MapPin, Car, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
@@ -11,15 +11,22 @@ import Footer from "@/components/Footer";
 interface Booking {
   id: string;
   booking_type: string;
+  service_type: string;
   pickup_location: string;
   dropoff_location: string | null;
   hours: number | null;
   pickup_date: string;
   pickup_time: string;
-  vehicle_id: string;
+  vehicle_id: string | null;
+  driver_id: string | null;
   status: string;
-  estimated_price: number | null;
+  price_estimate: number | null;
+  is_favourite: boolean;
+  notes: string | null;
   created_at: string;
+  updated_at: string;
+  vehicles?: { name: string } | null;
+  drivers?: { full_name: string } | null;
 }
 
 const statusColors: Record<string, string> = {
@@ -48,16 +55,15 @@ const Dashboard = () => {
     const fetchBookings = async () => {
       const { data } = await supabase
         .from("bookings")
-        .select("*")
+        .select("*, vehicles:vehicle_id(name), drivers:driver_id(full_name)")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
-      setBookings(data || []);
+      setBookings((data as Booking[]) || []);
       setLoading(false);
     };
 
     fetchBookings();
 
-    // Realtime subscription
     const channel = supabase
       .channel("bookings-realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "bookings", filter: `user_id=eq.${user.id}` },
@@ -117,31 +123,46 @@ const Dashboard = () => {
               <div className="space-y-4">
                 {bookings.map((booking) => (
                   <motion.div key={booking.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                    className="rounded-xl bg-card border border-border p-5 flex items-center justify-between">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-accent" />
-                        <span className="font-medium text-foreground">{booking.pickup_location}</span>
-                        {booking.dropoff_location && (
-                          <>
-                            <span className="text-muted-foreground">→</span>
-                            <span className="font-medium text-foreground">{booking.dropoff_location}</span>
-                          </>
+                    className="rounded-xl bg-card border border-border p-5">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1 flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-accent shrink-0" />
+                          <span className="font-medium text-foreground truncate">{booking.pickup_location}</span>
+                          {booking.dropoff_location && (
+                            <>
+                              <span className="text-muted-foreground">→</span>
+                              <span className="font-medium text-foreground truncate">{booking.dropoff_location}</span>
+                            </>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
+                          <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {booking.pickup_date}</span>
+                          <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {booking.pickup_time}</span>
+                          {booking.hours && <span>{booking.hours}hrs</span>}
+                        </div>
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
+                          {booking.vehicles?.name && (
+                            <span className="flex items-center gap-1">
+                              <Car className="w-3 h-3" /> {booking.vehicles.name}
+                            </span>
+                          )}
+                          {booking.drivers?.full_name && (
+                            <span className="flex items-center gap-1">
+                              <User className="w-3 h-3" /> Driver: {booking.drivers.full_name}
+                            </span>
+                          )}
+                          <span className="capitalize">{booking.service_type.replace("_", " ")}</span>
+                        </div>
+                      </div>
+                      <div className="text-right space-y-1 shrink-0 ml-4">
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${statusColors[booking.status] || ""}`}>
+                          {booking.status.replace("_", " ")}
+                        </span>
+                        {booking.price_estimate && (
+                          <p className="text-sm font-semibold text-accent">R{booking.price_estimate}</p>
                         )}
                       </div>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {booking.pickup_date}</span>
-                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {booking.pickup_time}</span>
-                        {booking.hours && <span>{booking.hours}hrs</span>}
-                      </div>
-                    </div>
-                    <div className="text-right space-y-1">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${statusColors[booking.status] || ""}`}>
-                        {booking.status.replace("_", " ")}
-                      </span>
-                      {booking.estimated_price && (
-                        <p className="text-sm font-semibold text-accent">R{booking.estimated_price}</p>
-                      )}
                     </div>
                   </motion.div>
                 ))}
