@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Star } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Carousel,
@@ -114,37 +115,25 @@ const Testimonials = () => {
           </p>
         </motion.div>
 
-        {isMobile ? (
-          <Carousel
-            opts={{ loop: true, align: "start" }}
-            plugins={[Autoplay({ delay: 4000, stopOnInteraction: false, stopOnMouseEnter: true })]}
-            className="w-full"
-          >
-            <CarouselContent className="-ml-4">
-              {testimonials.map((testimonial) => (
-                <CarouselItem key={testimonial.name} className="pl-4 basis-[85%]">
-                  <TestimonialCard testimonial={testimonial} />
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-          </Carousel>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {testimonials.map((testimonial, index) => (
-              <motion.div
+        <Carousel
+          opts={{ loop: true, align: "start" }}
+          plugins={[Autoplay({ delay: 3500, stopOnInteraction: false, stopOnMouseEnter: true })]}
+          className="w-full"
+        >
+          <CarouselContent className="-ml-4">
+            {testimonials.map((testimonial) => (
+              <CarouselItem
                 key={testimonial.name}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="group relative h-full"
+                className={cn(
+                  "pl-4",
+                  isMobile ? "basis-[85%]" : "md:basis-1/2 lg:basis-1/3"
+                )}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-accent/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <TestimonialCard testimonial={testimonial} />
-              </motion.div>
+              </CarouselItem>
             ))}
-          </div>
-        )}
+          </CarouselContent>
+        </Carousel>
       </div>
     </section>
   );

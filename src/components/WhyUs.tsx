@@ -44,8 +44,8 @@ const reasons = [
 
 const WhyUs = () => {
   return (
-    <section className="section-padding bg-background">
-      <div className="container mx-auto">
+    <section className="bg-background">
+      <div className="section-padding container mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -88,29 +88,31 @@ const WhyUs = () => {
           ))}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="mt-16 p-8 rounded-2xl bg-gradient-to-r from-accent/10 to-accent/5 border border-accent/20"
-        >
-          <div className="text-center">
-            <h3 className="text-2xl font-bold text-foreground mb-3">
-              Ready to Experience the Difference?
-            </h3>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Join thousands of satisfied travelers who trust Cape Town Rides
-              for their transportation needs.
-            </p>
-            <Link to="/book" className="hidden sm:block mt-6">
-              <Button variant="hero" size="sm">
-                Book Now
-              </Button>
-            </Link>
-          </div>
-        </motion.div>
       </div>
+
+      {/* Full-width CTA banner */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6, delay: 0.6 }}
+        className="mt-16 py-12 px-4 bg-gradient-to-r from-accent/10 via-accent/15 to-accent/10 border-y border-accent/20"
+      >
+        <div className="text-center max-w-3xl mx-auto">
+          <h3 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
+            Ready to Experience the Difference?
+          </h3>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Join thousands of satisfied travelers who trust Cape Town Rides
+            for their transportation needs.
+          </p>
+          <Link to="/book" className="hidden sm:inline-block mt-6">
+            <Button variant="hero" size="sm">
+              Book Now
+            </Button>
+          </Link>
+        </div>
+      </motion.div>
     </section>
   );
 };
