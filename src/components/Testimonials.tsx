@@ -1,5 +1,12 @@
 import { motion } from "framer-motion";
 import { Star } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
 
 const testimonials = [
   {
@@ -58,7 +65,33 @@ const testimonials = [
   },
 ];
 
+const TestimonialCard = ({ testimonial }: { testimonial: typeof testimonials[0] }) => (
+  <div className="relative p-8 rounded-2xl bg-card border border-border hover:border-accent/30 transition-all duration-300 shadow-sm hover:shadow-lg h-full flex flex-col">
+    <div className="flex gap-1 mb-4">
+      {[...Array(testimonial.rating)].map((_, i) => (
+        <Star key={i} className="w-4 h-4 fill-accent text-accent" />
+      ))}
+    </div>
+    <p className="text-sm text-muted-foreground leading-relaxed mb-6 italic flex-grow">
+      "{testimonial.content}"
+    </p>
+    <div className="flex items-center gap-4 pt-6 border-t border-border mt-auto">
+      <img
+        src={testimonial.image}
+        alt={testimonial.name}
+        className="w-12 h-12 rounded-full object-cover ring-2 ring-accent/20"
+      />
+      <div className="flex-1">
+        <p className="font-semibold text-foreground text-sm">{testimonial.name}</p>
+        <p className="text-xs text-muted-foreground">{testimonial.role}</p>
+      </div>
+    </div>
+  </div>
+);
+
 const Testimonials = () => {
+  const isMobile = useIsMobile();
+
   return (
     <section className="section-padding bg-background">
       <div className="container mx-auto">
@@ -81,52 +114,37 @@ const Testimonials = () => {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          {testimonials.map((testimonial, index) => (
-            <motion.div
-              key={testimonial.name}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="group relative h-full"
-            >
-              {/* Premium card background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-accent/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-              <div className="relative p-8 rounded-2xl bg-card border border-border hover:border-accent/30 transition-all duration-300 shadow-sm hover:shadow-lg h-full flex flex-col">
-                {/* Star rating */}
-                <div className="flex gap-1 mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-accent text-accent" />
-                  ))}
-                </div>
-
-                {/* Testimonial content */}
-                <p className="text-sm text-muted-foreground leading-relaxed mb-6 italic flex-grow">
-                  "{testimonial.content}"
-                </p>
-
-                {/* Author info */}
-                <div className="flex items-center gap-4 pt-6 border-t border-border mt-auto">
-                  <img
-                    src={testimonial.image}
-                    alt={testimonial.name}
-                    className="w-12 h-12 rounded-full object-cover ring-2 ring-accent/20"
-                  />
-                  <div className="flex-1">
-                    <p className="font-semibold text-foreground text-sm">
-                      {testimonial.name}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {testimonial.role}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+        {isMobile ? (
+          <Carousel
+            opts={{ loop: true, align: "start" }}
+            plugins={[Autoplay({ delay: 4000, stopOnInteraction: false, stopOnMouseEnter: true })]}
+            className="w-full"
+          >
+            <CarouselContent className="-ml-4">
+              {testimonials.map((testimonial) => (
+                <CarouselItem key={testimonial.name} className="pl-4 basis-[85%]">
+                  <TestimonialCard testimonial={testimonial} />
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+          </Carousel>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {testimonials.map((testimonial, index) => (
+              <motion.div
+                key={testimonial.name}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className="group relative h-full"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-accent/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <TestimonialCard testimonial={testimonial} />
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
