@@ -166,10 +166,11 @@ const BookingForm = () => {
 
     try {
       // Update user profile with latest info
+      const phoneNumber = `${formData.countryCode}${formData.phone}`;
       await supabase.from("profiles").upsert({
         id: user.id,
         full_name: formData.fullName,
-        phone: formData.countryCode + formData.phone,
+        phone: phoneNumber,
         updated_at: new Date().toISOString(),
       });
 
@@ -182,6 +183,9 @@ const BookingForm = () => {
 
       // Store return trip and extra details as JSON in notes
       const bookingNotes = {
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: phoneNumber,
         numPassengers: formData.numPassengers,
         flightNumber: formData.flightNumber,
         extraDetails: formData.extraDetails,
@@ -195,7 +199,7 @@ const BookingForm = () => {
           : null,
       };
 
-      // Map trip types to service types
+      // Map trip types to service types (matching schema CHECK constraint)
       const serviceTypeMap: { [key: string]: string } = {
         airport_transfers: "airport_transfer",
         shuttle_service: "point_to_point",
@@ -203,6 +207,7 @@ const BookingForm = () => {
         other: "point_to_point",
       };
 
+      const now = new Date().toISOString();
       const { error } = await supabase.from("bookings").insert({
         user_id: user.id,
         vehicle_id: formData.vehicleId,
@@ -215,8 +220,9 @@ const BookingForm = () => {
         status: "pending",
         price_estimate: priceEstimate,
         notes: JSON.stringify(bookingNotes),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        is_favourite: false,
+        created_at: now,
+        updated_at: now,
       });
 
       if (error) throw error;
@@ -224,12 +230,12 @@ const BookingForm = () => {
       toast({
         title: "Booking Submitted! 🎉",
         description:
-          "Your booking is pending confirmation. Check your dashboard.",
+          "Your booking is pending admin approval. Check your dashboard.",
       });
 
       // Reset form
       setFormData({
-        fullName: "",
+        fullName: "airport_transfers",
         email: "",
         phone: "",
         countryCode: "+27",
