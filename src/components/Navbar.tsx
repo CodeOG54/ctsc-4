@@ -30,6 +30,7 @@ const Navbar = () => {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { isAdmin } = useAdminCheck();
+  const { isDriver } = useDriverCheck();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
