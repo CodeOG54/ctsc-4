@@ -70,6 +70,10 @@ const AdminDashboard = () => {
         .order("created_at", { ascending: false }),
       supabase.from("drivers").select("*").eq("is_active", true),
     ]);
+    console.log("Admin bookings response:", bookingsRes);
+    console.log("Admin drivers response:", driversRes);
+    if (bookingsRes.error) console.error("Bookings fetch error:", bookingsRes.error);
+    if (driversRes.error) console.error("Drivers fetch error:", driversRes.error);
     setBookings((bookingsRes.data as Booking[]) || []);
     setDrivers((driversRes.data as Driver[]) || []);
     setLoading(false);
