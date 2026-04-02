@@ -31,10 +31,24 @@ interface Booking {
 
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-500/10 text-yellow-600",
-  confirmed: "bg-blue-500/10 text-blue-600",
+  approved: "bg-blue-500/10 text-blue-600",
+  driver_assigned: "bg-indigo-500/10 text-indigo-600",
+  on_the_way: "bg-orange-500/10 text-orange-600",
+  arrived: "bg-purple-500/10 text-purple-600",
   in_progress: "bg-accent/10 text-accent",
   completed: "bg-green-500/10 text-green-600",
   cancelled: "bg-destructive/10 text-destructive",
+};
+
+const statusLabels: Record<string, string> = {
+  pending: "Pending",
+  approved: "Approved",
+  driver_assigned: "Driver Assigned",
+  on_the_way: "Driver On The Way",
+  arrived: "Driver Arrived",
+  in_progress: "In Progress",
+  completed: "Completed",
+  cancelled: "Cancelled",
 };
 
 const Dashboard = () => {
@@ -95,7 +109,7 @@ const Dashboard = () => {
             <div className="grid grid-cols-3 gap-4 mb-8">
               {[
                 { label: "Total Bookings", value: bookings.length },
-                { label: "Active", value: bookings.filter(b => ["pending", "confirmed", "in_progress"].includes(b.status)).length },
+                { label: "Active", value: bookings.filter(b => ["pending", "approved", "driver_assigned", "on_the_way", "arrived", "in_progress"].includes(b.status)).length },
                 { label: "Completed", value: bookings.filter(b => b.status === "completed").length },
               ].map((stat) => (
                 <div key={stat.label} className="rounded-xl bg-card border border-border p-4 text-center">
@@ -152,12 +166,12 @@ const Dashboard = () => {
                               <User className="w-3 h-3" /> Driver: {booking.drivers.full_name}
                             </span>
                           )}
-                          <span className="capitalize">{booking.service_type.replace("_", " ")}</span>
+                          <span className="capitalize">{booking.service_type.replace(/_/g, " ")}</span>
                         </div>
                       </div>
                       <div className="text-right space-y-1 shrink-0 ml-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${statusColors[booking.status] || ""}`}>
-                          {booking.status.replace("_", " ")}
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[booking.status] || ""}`}>
+                          {statusLabels[booking.status] || booking.status.replace(/_/g, " ")}
                         </span>
                         {booking.price_estimate && (
                           <p className="text-sm font-semibold text-accent">R{booking.price_estimate}</p>
