@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Car, Users, CalendarCheck, Clock, CheckCircle, XCircle,
-  TrendingUp, UserPlus, Truck, LayoutDashboard
+  TrendingUp, Navigation, MapPin, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
@@ -30,7 +30,6 @@ interface Booking {
   updated_at: string;
   vehicles?: { name: string } | null;
   drivers?: { full_name: string } | null;
-  // Client-side joined
   customer_name?: string;
 }
 
@@ -45,15 +44,12 @@ interface Profile {
   full_name: string | null;
 }
 
-interface Driver {
-  id: string;
-  full_name: string;
-  is_active: boolean;
-}
-
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
-  confirmed: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+  approved: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+  driver_assigned: "bg-indigo-500/10 text-indigo-600 border-indigo-500/20",
+  on_the_way: "bg-orange-500/10 text-orange-600 border-orange-500/20",
+  arrived: "bg-purple-500/10 text-purple-600 border-purple-500/20",
   in_progress: "bg-accent/10 text-accent border-accent/20",
   completed: "bg-green-500/10 text-green-600 border-green-500/20",
   cancelled: "bg-destructive/10 text-destructive border-destructive/20",
@@ -116,7 +112,11 @@ const AdminDashboard = () => {
   };
 
   const assignDriver = async (bookingId: string, driverId: string) => {
-    await supabase.from("bookings").update({ driver_id: driverId, updated_at: new Date().toISOString() }).eq("id", bookingId);
+    await supabase.from("bookings").update({
+      driver_id: driverId,
+      status: "driver_assigned",
+      updated_at: new Date().toISOString(),
+    }).eq("id", bookingId);
   };
 
   if (authLoading || adminLoading || !isAdmin) return null;
@@ -124,7 +124,7 @@ const AdminDashboard = () => {
   const stats = [
     { label: "Total Bookings", value: bookings.length, icon: CalendarCheck, color: "text-blue-500" },
     { label: "Pending", value: bookings.filter(b => b.status === "pending").length, icon: Clock, color: "text-yellow-500" },
-    { label: "Active Trips", value: bookings.filter(b => ["confirmed", "in_progress"].includes(b.status)).length, icon: TrendingUp, color: "text-accent" },
+    { label: "Active Trips", value: bookings.filter(b => ["approved", "driver_assigned", "on_the_way", "arrived", "in_progress"].includes(b.status)).length, icon: TrendingUp, color: "text-accent" },
     { label: "Completed", value: bookings.filter(b => b.status === "completed").length, icon: CheckCircle, color: "text-green-500" },
   ];
 
@@ -172,9 +172,9 @@ const AdminDashboard = () => {
                     <div className="space-y-1 flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium capitalize border ${statusColors[booking.status] || ""}`}>
-                          {booking.status.replace("_", " ")}
+                          {booking.status.replace(/_/g, " ")}
                         </span>
-                        <span className="text-xs text-muted-foreground capitalize">{booking.service_type.replace("_", " ")}</span>
+                        <span className="text-xs text-muted-foreground capitalize">{booking.service_type.replace(/_/g, " ")}</span>
                       </div>
                       <p className="font-medium text-foreground truncate">
                         {booking.pickup_location}
@@ -187,28 +187,33 @@ const AdminDashboard = () => {
                         {booking.drivers?.full_name && <span>Driver: {booking.drivers.full_name}</span>}
                         {booking.price_estimate && <span className="font-semibold text-accent">R{booking.price_estimate}</span>}
                       </div>
+                      {booking.notes && (
+                        <p className="text-xs text-muted-foreground italic mt-1">Note: {booking.notes}</p>
+                      )}
                     </div>
 
                     {/* Actions */}
                     <div className="flex items-center gap-2 flex-wrap shrink-0">
-                      {/* Driver assignment */}
-                      <select
-                        className="text-xs rounded-lg border border-border bg-card px-2 py-1.5 text-foreground"
-                        value={booking.driver_id || ""}
-                        onChange={(e) => assignDriver(booking.id, e.target.value)}
-                      >
-                        <option value="">Assign Driver</option>
-                        {drivers.map((d) => (
-                          <option key={d.id} value={d.id}>{d.full_name}</option>
-                        ))}
-                      </select>
+                      {/* Driver assignment - only for pending/approved bookings */}
+                      {["pending", "approved"].includes(booking.status) && (
+                        <select
+                          className="text-xs rounded-lg border border-border bg-card px-2 py-1.5 text-foreground"
+                          value={booking.driver_id || ""}
+                          onChange={(e) => assignDriver(booking.id, e.target.value)}
+                        >
+                          <option value="">Assign Driver</option>
+                          {drivers.map((d) => (
+                            <option key={d.id} value={d.id}>{d.full_name}</option>
+                          ))}
+                        </select>
+                      )}
 
                       {/* Status buttons */}
                       {booking.status === "pending" && (
                         <>
                           <Button size="sm" variant="outline" className="text-xs gap-1 text-green-600 border-green-500/30 hover:bg-green-500/10"
-                            onClick={() => updateStatus(booking.id, "confirmed")}>
-                            <CheckCircle className="w-3 h-3" /> Confirm
+                            onClick={() => updateStatus(booking.id, "approved")}>
+                            <CheckCircle className="w-3 h-3" /> Approve
                           </Button>
                           <Button size="sm" variant="outline" className="text-xs gap-1 text-destructive border-destructive/30 hover:bg-destructive/10"
                             onClick={() => updateStatus(booking.id, "cancelled")}>
@@ -216,16 +221,19 @@ const AdminDashboard = () => {
                           </Button>
                         </>
                       )}
-                      {booking.status === "confirmed" && (
-                        <Button size="sm" variant="outline" className="text-xs gap-1 text-accent border-accent/30 hover:bg-accent/10"
-                          onClick={() => updateStatus(booking.id, "in_progress")}>
-                          <Car className="w-3 h-3" /> Start Trip
-                        </Button>
+                      {booking.status === "approved" && !booking.driver_id && (
+                        <span className="text-xs text-muted-foreground italic">Assign a driver →</span>
                       )}
                       {booking.status === "in_progress" && (
                         <Button size="sm" variant="outline" className="text-xs gap-1 text-green-600 border-green-500/30 hover:bg-green-500/10"
                           onClick={() => updateStatus(booking.id, "completed")}>
                           <CheckCircle className="w-3 h-3" /> Complete
+                        </Button>
+                      )}
+                      {booking.status !== "cancelled" && booking.status !== "completed" && (
+                        <Button size="sm" variant="outline" className="text-xs gap-1 text-destructive border-destructive/30 hover:bg-destructive/10"
+                          onClick={() => updateStatus(booking.id, "cancelled")}>
+                          <XCircle className="w-3 h-3" /> Cancel
                         </Button>
                       )}
                     </div>
