@@ -28,9 +28,21 @@ interface Booking {
   notes: string | null;
   created_at: string;
   updated_at: string;
-  profiles?: { full_name: string | null } | null;
   vehicles?: { name: string } | null;
   drivers?: { full_name: string } | null;
+  // Client-side joined
+  customer_name?: string;
+}
+
+interface Driver {
+  id: string;
+  full_name: string;
+  is_active: boolean;
+}
+
+interface Profile {
+  id: string;
+  full_name: string | null;
 }
 
 interface Driver {
@@ -63,18 +75,26 @@ const AdminDashboard = () => {
   }, [user, isAdmin, authLoading, adminLoading, navigate]);
 
   const fetchData = async () => {
-    const [bookingsRes, driversRes] = await Promise.all([
+    const [bookingsRes, driversRes, profilesRes] = await Promise.all([
       supabase
         .from("bookings")
-        .select("*, profiles:user_id(full_name), vehicles:vehicle_id(name), drivers:driver_id(full_name)")
+        .select("*, vehicles:vehicle_id(name), drivers:driver_id(full_name)")
         .order("created_at", { ascending: false }),
       supabase.from("drivers").select("*").eq("is_active", true),
+      supabase.from("profiles").select("id, full_name"),
     ]);
-    console.log("Admin bookings response:", bookingsRes);
-    console.log("Admin drivers response:", driversRes);
-    if (bookingsRes.error) console.error("Bookings fetch error:", bookingsRes.error);
-    if (driversRes.error) console.error("Drivers fetch error:", driversRes.error);
-    setBookings((bookingsRes.data as Booking[]) || []);
+
+    const profileMap = new Map<string, string>();
+    (profilesRes.data as Profile[] || []).forEach(p => {
+      if (p.full_name) profileMap.set(p.id, p.full_name);
+    });
+
+    const enrichedBookings = ((bookingsRes.data as Booking[]) || []).map(b => ({
+      ...b,
+      customer_name: profileMap.get(b.user_id) || "Unknown",
+    }));
+
+    setBookings(enrichedBookings);
     setDrivers((driversRes.data as Driver[]) || []);
     setLoading(false);
   };
@@ -162,7 +182,7 @@ const AdminDashboard = () => {
                       </p>
                       <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
                         <span>{booking.pickup_date} at {booking.pickup_time}</span>
-                        <span>Customer: {booking.profiles?.full_name || "Unknown"}</span>
+                        <span>Customer: {booking.customer_name || "Unknown"}</span>
                         {booking.vehicles?.name && <span>Vehicle: {booking.vehicles.name}</span>}
                         {booking.drivers?.full_name && <span>Driver: {booking.drivers.full_name}</span>}
                         {booking.price_estimate && <span className="font-semibold text-accent">R{booking.price_estimate}</span>}
