@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown, User, LogOut, Shield } from "lucide-react";
+import { Menu, X, ChevronDown, User, LogOut, Shield, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
+import { useDriverCheck } from "@/hooks/useDriverCheck";
 import logo from "@/assets/logo.png";
 
 const navLinks = [
