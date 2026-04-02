@@ -75,18 +75,26 @@ const AdminDashboard = () => {
   }, [user, isAdmin, authLoading, adminLoading, navigate]);
 
   const fetchData = async () => {
-    const [bookingsRes, driversRes] = await Promise.all([
+    const [bookingsRes, driversRes, profilesRes] = await Promise.all([
       supabase
         .from("bookings")
-        .select("*, profiles:user_id(full_name), vehicles:vehicle_id(name), drivers:driver_id(full_name)")
+        .select("*, vehicles:vehicle_id(name), drivers:driver_id(full_name)")
         .order("created_at", { ascending: false }),
       supabase.from("drivers").select("*").eq("is_active", true),
+      supabase.from("profiles").select("id, full_name"),
     ]);
-    console.log("Admin bookings response:", bookingsRes);
-    console.log("Admin drivers response:", driversRes);
-    if (bookingsRes.error) console.error("Bookings fetch error:", bookingsRes.error);
-    if (driversRes.error) console.error("Drivers fetch error:", driversRes.error);
-    setBookings((bookingsRes.data as Booking[]) || []);
+
+    const profileMap = new Map<string, string>();
+    (profilesRes.data as Profile[] || []).forEach(p => {
+      if (p.full_name) profileMap.set(p.id, p.full_name);
+    });
+
+    const enrichedBookings = ((bookingsRes.data as Booking[]) || []).map(b => ({
+      ...b,
+      customer_name: profileMap.get(b.user_id) || "Unknown",
+    }));
+
+    setBookings(enrichedBookings);
     setDrivers((driversRes.data as Driver[]) || []);
     setLoading(false);
   };
