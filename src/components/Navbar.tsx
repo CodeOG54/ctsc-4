@@ -127,6 +127,17 @@ const Navbar = () => {
                   </Button>
                 </Link>
               )}
+              {isDriver && (
+                <Link to="/driver">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-accent hover:text-primary"
+                  >
+                    <Truck className="w-5 h-5" />
+                  </Button>
+                </Link>
+              )}
               <Link to="/dashboard">
                 <Button
                   variant="ghost"
