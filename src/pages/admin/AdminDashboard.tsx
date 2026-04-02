@@ -182,7 +182,7 @@ const AdminDashboard = () => {
                       </p>
                       <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
                         <span>{booking.pickup_date} at {booking.pickup_time}</span>
-                        <span>Customer: {booking.profiles?.full_name || "Unknown"}</span>
+                        <span>Customer: {booking.customer_name || "Unknown"}</span>
                         {booking.vehicles?.name && <span>Vehicle: {booking.vehicles.name}</span>}
                         {booking.drivers?.full_name && <span>Driver: {booking.drivers.full_name}</span>}
                         {booking.price_estimate && <span className="font-semibold text-accent">R{booking.price_estimate}</span>}
