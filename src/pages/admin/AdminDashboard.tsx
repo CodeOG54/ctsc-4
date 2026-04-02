@@ -28,9 +28,21 @@ interface Booking {
   notes: string | null;
   created_at: string;
   updated_at: string;
-  profiles?: { full_name: string | null } | null;
   vehicles?: { name: string } | null;
   drivers?: { full_name: string } | null;
+  // Client-side joined
+  customer_name?: string;
+}
+
+interface Driver {
+  id: string;
+  full_name: string;
+  is_active: boolean;
+}
+
+interface Profile {
+  id: string;
+  full_name: string | null;
 }
 
 interface Driver {
