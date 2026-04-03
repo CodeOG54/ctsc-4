@@ -69,7 +69,7 @@ const Dashboard = () => {
     const fetchBookings = async () => {
       const { data } = await supabase
         .from("bookings")
-        .select("id, user_id, vehicle_id, driver_id, service_type, booking_type, pickup_location, dropoff_location, hours, pickup_date, pickup_time, status, price_estimate, notes, created_at, updated_at, vehicles:vehicle_id(name), drivers:driver_id(full_name)")
+        .select("id, user_id, vehicle_id, driver_id, service_type, booking_type, pickup_location, dropoff_location, hours, pickup_date, pickup_time, status, price_estimate, is_favourite, notes, created_at, updated_at, vehicles:vehicle_id(name), drivers:driver_id(full_name)")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
       setBookings((data as Booking[]) || []);
