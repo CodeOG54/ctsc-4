@@ -74,7 +74,7 @@ const AdminDashboard = () => {
     const [bookingsRes, driversRes, profilesRes] = await Promise.all([
       supabase
         .from("bookings")
-        .select("*, vehicles:vehicle_id(name), drivers:driver_id(full_name)")
+        .select("id, user_id, vehicle_id, driver_id, service_type, booking_type, pickup_location, dropoff_location, hours, pickup_date, pickup_time, status, price_estimate, notes, created_at, updated_at, vehicles:vehicle_id(name), drivers:driver_id(full_name)")
         .order("created_at", { ascending: false }),
       supabase.from("drivers").select("*").eq("is_active", true),
       supabase.from("profiles").select("id, full_name"),
