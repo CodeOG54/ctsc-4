@@ -9,22 +9,26 @@ export const useDriverCheck = () => {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user?.email) {
+
+    if (!user) {
       setDriverId(null);
       setLoading(false);
       return;
     }
 
     const check = async () => {
-      const { data } = await supabase
-        .from("drivers")
-        .select("id")
-        .eq("email", user.email)
-        .eq("is_active", true)
-        .maybeSingle();
-      setDriverId(data?.id || null);
+      const { data, error } = await supabase.rpc("get_current_driver_id");
+
+      if (error) {
+        console.error("Driver check failed", error);
+        setDriverId(null);
+      } else {
+        setDriverId(data ?? null);
+      }
+
       setLoading(false);
     };
+
     check();
   }, [user, authLoading]);
 
