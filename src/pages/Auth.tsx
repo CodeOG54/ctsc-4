@@ -22,28 +22,28 @@ const Auth = () => {
 
   useEffect(() => {
     if (user) {
-      // Check if admin and redirect accordingly
       const checkRoleAndRedirect = async () => {
-        // Check admin
         const { data: adminRole } = await supabase
           .from("user_roles")
           .select("role")
           .eq("user_id", user.id)
           .eq("role", "admin")
           .maybeSingle();
-        if (adminRole) { navigate("/admin"); return; }
 
-        // Check driver
-        const { data: driverMatch } = await supabase
-          .from("drivers")
-          .select("id")
-          .eq("email", user.email)
-          .eq("is_active", true)
-          .maybeSingle();
-        if (driverMatch) { navigate("/driver"); return; }
+        if (adminRole) {
+          navigate("/admin");
+          return;
+        }
 
-        navigate("/dashboard");
+        const { data: driverId, error: driverError } = await supabase.rpc("get_current_driver_id");
+
+        if (driverError) {
+          console.error("Driver redirect check failed", driverError);
+        }
+
+        navigate(driverId ? "/driver" : "/dashboard");
       };
+
       checkRoleAndRedirect();
     }
   }, [user, navigate]);
