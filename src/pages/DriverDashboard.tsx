@@ -72,7 +72,7 @@ const DriverDashboard = () => {
     const [bookingsRes, profilesRes] = await Promise.all([
       supabase
         .from("bookings")
-        .select("*, vehicles:vehicle_id(name)")
+        .select("id, user_id, vehicle_id, driver_id, service_type, booking_type, pickup_location, dropoff_location, hours, pickup_date, pickup_time, status, price_estimate, notes, created_at, updated_at, vehicles:vehicle_id(name)")
         .eq("driver_id", driverId)
         .in("status", ["approved", "driver_assigned", "on_the_way", "arrived", "in_progress", "completed"])
         .order("pickup_date", { ascending: true }),
@@ -84,7 +84,7 @@ const DriverDashboard = () => {
       if (p.full_name) profileMap.set(p.id, p.full_name);
     });
 
-    const enriched = ((bookingsRes.data as DriverBooking[]) || []).map(b => ({
+    const enriched = ((bookingsRes.data as unknown as DriverBooking[]) || []).map(b => ({
       ...b,
       customer_name: profileMap.get(b.user_id) || "Customer",
     }));

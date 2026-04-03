@@ -138,15 +138,17 @@ const Navbar = () => {
                   </Button>
                 </Link>
               )}
-              <Link to="/dashboard">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-foreground/70 hover:text-foreground"
-                >
-                  <User className="w-5 h-5" />
-                </Button>
-              </Link>
+              {!isDriver && (
+                <Link to="/dashboard">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-foreground/70 hover:text-foreground"
+                  >
+                    <User className="w-5 h-5" />
+                  </Button>
+                </Link>
+              )}
               <Button
                 variant="ghost"
                 size="icon"
