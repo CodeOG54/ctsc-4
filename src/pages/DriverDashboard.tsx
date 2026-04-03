@@ -84,7 +84,7 @@ const DriverDashboard = () => {
       if (p.full_name) profileMap.set(p.id, p.full_name);
     });
 
-    const enriched = ((bookingsRes.data as DriverBooking[]) || []).map(b => ({
+    const enriched = ((bookingsRes.data as unknown as DriverBooking[]) || []).map(b => ({
       ...b,
       customer_name: profileMap.get(b.user_id) || "Customer",
     }));

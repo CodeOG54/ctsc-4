@@ -85,7 +85,7 @@ const AdminDashboard = () => {
       if (p.full_name) profileMap.set(p.id, p.full_name);
     });
 
-    const enrichedBookings = ((bookingsRes.data as Booking[]) || []).map(b => ({
+    const enrichedBookings = ((bookingsRes.data as unknown as Booking[]) || []).map(b => ({
       ...b,
       customer_name: profileMap.get(b.user_id) || "Unknown",
     }));
