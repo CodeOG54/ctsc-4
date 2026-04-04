@@ -1,5 +1,2 @@
-[project]
-id = "jpbpgynrslslokzuiefb"
-
 [functions.create-driver]
 verify_jwt = false
