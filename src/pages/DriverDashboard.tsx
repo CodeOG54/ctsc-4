@@ -107,9 +107,19 @@ const DriverDashboard = () => {
     return () => { supabase.removeChannel(channel); };
   }, [driverId]);
 
-  const updateStatus = async (id: string, status: string) => {
+  const updateStatus = async (id: string, newStatus: string) => {
     setUpdatingId(id);
-    await supabase.from("bookings").update({ status, updated_at: new Date().toISOString() }).eq("id", id);
+    const { error } = await supabase
+      .from("bookings")
+      .update({ status: newStatus, updated_at: new Date().toISOString() })
+      .eq("id", id);
+    
+    if (error) {
+      console.error("Driver status update error:", error);
+    } else {
+      // Refresh bookings after successful update
+      await fetchBookings();
+    }
     setUpdatingId(null);
   };
 
