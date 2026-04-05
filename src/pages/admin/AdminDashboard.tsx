@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Car, Users, CalendarCheck, Clock, CheckCircle, XCircle,
-  TrendingUp, Navigation, MapPin, Loader2
+  TrendingUp, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
@@ -62,6 +62,7 @@ const AdminDashboard = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !adminLoading) {
@@ -79,17 +80,11 @@ const AdminDashboard = () => {
       supabase.from("drivers").select("*").eq("is_active", true),
       supabase.from("profiles").select("id, full_name"),
     ]);
-
     const profileMap = new Map<string, string>();
-    (profilesRes.data as Profile[] || []).forEach(p => {
-      if (p.full_name) profileMap.set(p.id, p.full_name);
-    });
-
+    (profilesRes.data as Profile[] || []).forEach(p => { if (p.full_name) profileMap.set(p.id, p.full_name); });
     const enrichedBookings = ((bookingsRes.data as unknown as Booking[]) || []).map(b => ({
-      ...b,
-      customer_name: profileMap.get(b.user_id) || "Unknown",
+      ...b, customer_name: profileMap.get(b.user_id) || "Unknown",
     }));
-
     setBookings(enrichedBookings);
     setDrivers((driversRes.data as Driver[]) || []);
     setLoading(false);
@@ -98,64 +93,67 @@ const AdminDashboard = () => {
   useEffect(() => {
     if (!isAdmin) return;
     fetchData();
-
     const channel = supabase
       .channel("admin-bookings")
       .on("postgres_changes", { event: "*", schema: "public", table: "bookings" }, () => fetchData())
       .subscribe();
-
     return () => { supabase.removeChannel(channel); };
   }, [isAdmin]);
 
   const updateStatus = async (id: string, status: string) => {
+    setActionLoading(id);
     await supabase.from("bookings").update({ status, updated_at: new Date().toISOString() }).eq("id", id);
+    setActionLoading(null);
   };
 
   const assignDriver = async (bookingId: string, driverId: string) => {
+    setActionLoading(bookingId);
     await supabase.from("bookings").update({
-      driver_id: driverId,
-      status: "driver_assigned",
-      updated_at: new Date().toISOString(),
+      driver_id: driverId, status: "driver_assigned", updated_at: new Date().toISOString(),
     }).eq("id", bookingId);
+    setActionLoading(null);
   };
 
   if (authLoading || adminLoading || !isAdmin) return null;
 
   const stats = [
-    { label: "Total Bookings", value: bookings.length, icon: CalendarCheck, color: "text-blue-500" },
-    { label: "Pending", value: bookings.filter(b => b.status === "pending").length, icon: Clock, color: "text-yellow-500" },
-    { label: "Active Trips", value: bookings.filter(b => ["approved", "driver_assigned", "on_the_way", "arrived", "in_progress"].includes(b.status)).length, icon: TrendingUp, color: "text-accent" },
-    { label: "Completed", value: bookings.filter(b => b.status === "completed").length, icon: CheckCircle, color: "text-green-500" },
+    { label: "Total Bookings", value: bookings.length, icon: CalendarCheck, gradient: "from-blue-500/10 to-blue-600/5", color: "text-blue-500" },
+    { label: "Pending", value: bookings.filter(b => b.status === "pending").length, icon: Clock, gradient: "from-yellow-500/10 to-yellow-600/5", color: "text-yellow-500" },
+    { label: "Active Trips", value: bookings.filter(b => ["approved", "driver_assigned", "on_the_way", "arrived", "in_progress"].includes(b.status)).length, icon: TrendingUp, gradient: "from-accent/10 to-accent/5", color: "text-accent" },
+    { label: "Completed", value: bookings.filter(b => b.status === "completed").length, icon: CheckCircle, gradient: "from-green-500/10 to-green-600/5", color: "text-green-500" },
   ];
 
   return (
     <AdminLayout>
-      <div className="space-y-8">
+      <div className="space-y-6 sm:space-y-8">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Real-time booking management</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Overview</h1>
+          <p className="text-muted-foreground text-sm mt-1">Real-time booking management</p>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {stats.map((stat) => (
-            <motion.div key={stat.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-              className="rounded-xl bg-card border border-border p-5">
-              <div className="flex items-center justify-between">
-                <stat.icon className={`w-5 h-5 ${stat.color}`} />
-              </div>
-              <p className="text-2xl font-bold text-foreground mt-3">{stat.value}</p>
-              <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          {stats.map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.08 }}
+              className={`rounded-2xl bg-gradient-to-br ${stat.gradient} border border-border/50 p-4 sm:p-5`}
+            >
+              <stat.icon className={`w-5 h-5 ${stat.color} mb-2`} />
+              <p className="text-2xl sm:text-3xl font-bold text-foreground">{stat.value}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{stat.label}</p>
             </motion.div>
           ))}
         </div>
 
-        {/* Bookings Table */}
+        {/* Bookings */}
         <div>
-          <h2 className="text-xl font-semibold text-foreground mb-4">All Bookings</h2>
+          <h2 className="text-lg font-semibold text-foreground mb-4">All Bookings</h2>
           {loading ? (
             <div className="space-y-3">
-              {[1, 2, 3].map(i => <div key={i} className="h-20 rounded-xl bg-secondary animate-pulse" />)}
+              {[1, 2, 3].map(i => <div key={i} className="h-28 rounded-2xl bg-secondary/50 animate-pulse" />)}
             </div>
           ) : bookings.length === 0 ? (
             <div className="text-center py-16 rounded-2xl bg-card border border-border">
@@ -164,42 +162,53 @@ const AdminDashboard = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {bookings.map((booking) => (
-                <motion.div key={booking.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  className="rounded-xl bg-card border border-border p-5">
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                    {/* Left info */}
-                    <div className="space-y-1 flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium capitalize border ${statusColors[booking.status] || ""}`}>
-                          {booking.status.replace(/_/g, " ")}
-                        </span>
-                        <span className="text-xs text-muted-foreground capitalize">{booking.service_type.replace(/_/g, " ")}</span>
-                      </div>
-                      <p className="font-medium text-foreground truncate">
-                        {booking.pickup_location}
-                        {booking.dropoff_location && <span className="text-muted-foreground"> → {booking.dropoff_location}</span>}
-                      </p>
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
-                        <span>{booking.pickup_date} at {booking.pickup_time}</span>
-                        <span>Customer: {booking.customer_name || "Unknown"}</span>
-                        {booking.vehicles?.name && <span>Vehicle: {booking.vehicles.name}</span>}
-                        {booking.drivers?.full_name && <span>Driver: {booking.drivers.full_name}</span>}
-                        {booking.price_estimate && <span className="font-semibold text-accent">R{booking.price_estimate}</span>}
-                      </div>
-                      {booking.notes && (
-                        <p className="text-xs text-muted-foreground italic mt-1">Note: {booking.notes}</p>
+              {bookings.map((booking, i) => {
+                const isActioning = actionLoading === booking.id;
+                return (
+                  <motion.div
+                    key={booking.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.03 }}
+                    className="rounded-2xl bg-card border border-border/50 p-4 sm:p-5 hover:border-border transition-colors"
+                  >
+                    {/* Top row: status + service type */}
+                    <div className="flex items-center gap-2 flex-wrap mb-2">
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium capitalize border ${statusColors[booking.status] || ""}`}>
+                        {booking.status.replace(/_/g, " ")}
+                      </span>
+                      <span className="text-xs text-muted-foreground capitalize">{booking.service_type.replace(/_/g, " ")}</span>
+                      {booking.price_estimate && (
+                        <span className="ml-auto text-sm font-bold text-accent">R{booking.price_estimate}</span>
                       )}
                     </div>
 
+                    {/* Route */}
+                    <p className="text-sm font-medium text-foreground mb-1 break-words">
+                      {booking.pickup_location}
+                      {booking.dropoff_location && <span className="text-muted-foreground"> → {booking.dropoff_location}</span>}
+                    </p>
+
+                    {/* Meta */}
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap mb-3">
+                      <span>{booking.pickup_date} at {booking.pickup_time}</span>
+                      <span>Customer: {booking.customer_name}</span>
+                      {booking.vehicles?.name && <span>Vehicle: {booking.vehicles.name}</span>}
+                      {booking.drivers?.full_name && <span>Driver: {booking.drivers.full_name}</span>}
+                    </div>
+
+                    {booking.notes && (
+                      <p className="text-xs text-muted-foreground italic mb-3 break-words">Note: {booking.notes}</p>
+                    )}
+
                     {/* Actions */}
-                    <div className="flex items-center gap-2 flex-wrap shrink-0">
-                      {/* Driver assignment - only for pending/approved bookings */}
+                    <div className="flex items-center gap-2 flex-wrap">
                       {["pending", "approved"].includes(booking.status) && (
                         <select
-                          className="text-xs rounded-lg border border-border bg-card px-2 py-1.5 text-foreground"
+                          className="text-xs rounded-xl border border-border bg-secondary/50 px-3 py-1.5 text-foreground max-w-[160px]"
                           value={booking.driver_id || ""}
                           onChange={(e) => assignDriver(booking.id, e.target.value)}
+                          disabled={isActioning}
                         >
                           <option value="">Assign Driver</option>
                           {drivers.map((d) => (
@@ -208,38 +217,37 @@ const AdminDashboard = () => {
                         </select>
                       )}
 
-                      {/* Status buttons */}
                       {booking.status === "pending" && (
                         <>
-                          <Button size="sm" variant="outline" className="text-xs gap-1 text-green-600 border-green-500/30 hover:bg-green-500/10"
-                            onClick={() => updateStatus(booking.id, "approved")}>
-                            <CheckCircle className="w-3 h-3" /> Approve
+                          <Button size="sm" className="text-xs gap-1.5 rounded-xl bg-green-600 hover:bg-green-700 text-white border-0"
+                            onClick={() => updateStatus(booking.id, "approved")} disabled={isActioning}>
+                            {isActioning ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3" />} Approve
                           </Button>
-                          <Button size="sm" variant="outline" className="text-xs gap-1 text-destructive border-destructive/30 hover:bg-destructive/10"
-                            onClick={() => updateStatus(booking.id, "cancelled")}>
+                          <Button size="sm" variant="outline" className="text-xs gap-1.5 rounded-xl text-destructive border-destructive/30 hover:bg-destructive/10"
+                            onClick={() => updateStatus(booking.id, "cancelled")} disabled={isActioning}>
                             <XCircle className="w-3 h-3" /> Cancel
                           </Button>
                         </>
                       )}
                       {booking.status === "approved" && !booking.driver_id && (
-                        <span className="text-xs text-muted-foreground italic">Assign a driver →</span>
+                        <span className="text-xs text-muted-foreground italic">← Assign a driver</span>
                       )}
                       {booking.status === "in_progress" && (
-                        <Button size="sm" variant="outline" className="text-xs gap-1 text-green-600 border-green-500/30 hover:bg-green-500/10"
-                          onClick={() => updateStatus(booking.id, "completed")}>
-                          <CheckCircle className="w-3 h-3" /> Complete
+                        <Button size="sm" className="text-xs gap-1.5 rounded-xl bg-green-600 hover:bg-green-700 text-white border-0"
+                          onClick={() => updateStatus(booking.id, "completed")} disabled={isActioning}>
+                          {isActioning ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3" />} Complete
                         </Button>
                       )}
-                      {booking.status !== "cancelled" && booking.status !== "completed" && (
-                        <Button size="sm" variant="outline" className="text-xs gap-1 text-destructive border-destructive/30 hover:bg-destructive/10"
-                          onClick={() => updateStatus(booking.id, "cancelled")}>
+                      {!["cancelled", "completed", "pending"].includes(booking.status) && (
+                        <Button size="sm" variant="outline" className="text-xs gap-1.5 rounded-xl text-destructive border-destructive/30 hover:bg-destructive/10"
+                          onClick={() => updateStatus(booking.id, "cancelled")} disabled={isActioning}>
                           <XCircle className="w-3 h-3" /> Cancel
                         </Button>
                       )}
                     </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </div>
           )}
         </div>
