@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { LogOut, ChevronDown, Car } from "lucide-react";
+import { LogOut, ChevronDown, Car, Camera, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { supabase } from "@/lib/supabase";
+import { uploadImage } from "@/lib/storage";
 import logo from "@/assets/logo.png";
 
 interface AuthNavbarProps {
@@ -13,10 +15,22 @@ const AuthNavbar = ({ role }: AuthNavbarProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
   const initials = displayName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
+
+  useEffect(() => {
+    if (!user) return;
+    const loadAvatar = async () => {
+      const { data } = await supabase.from("profiles").select("avatar_url").eq("id", user.id).single();
+      if (data?.avatar_url) setAvatarUrl(data.avatar_url);
+    };
+    loadAvatar();
+  }, [user]);
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -31,6 +45,23 @@ const AuthNavbar = ({ role }: AuthNavbarProps) => {
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `${user.id}/avatar.${ext}`;
+      const publicUrl = await uploadImage(file, "user-photos", path, { cacheControl: "3600", upsert: true });
+      await supabase.from("profiles").update({ avatar_url: publicUrl, updated_at: new Date().toISOString() }).eq("id", user.id);
+      setAvatarUrl(publicUrl + "?t=" + Date.now());
+    } catch (err) {
+      console.error("Avatar upload failed:", err);
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -56,6 +87,7 @@ const AuthNavbar = ({ role }: AuthNavbarProps) => {
               className="flex items-center gap-2.5 px-3 py-1.5 rounded-full hover:bg-secondary/80 transition-colors"
             >
               <Avatar className="h-8 w-8">
+                {avatarUrl && <AvatarImage src={avatarUrl} alt={displayName} />}
                 <AvatarFallback className="bg-accent/10 text-accent text-xs font-semibold">
                   {initials}
                 </AvatarFallback>
@@ -68,9 +100,37 @@ const AuthNavbar = ({ role }: AuthNavbarProps) => {
 
             {open && (
               <div className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-border bg-card shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                <div className="px-4 py-3 border-b border-border">
-                  <p className="text-sm font-medium text-foreground truncate">{displayName}</p>
-                  <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                <div className="px-4 py-3 border-b border-border flex items-center gap-3">
+                  <div className="relative group shrink-0">
+                    <Avatar className="h-10 w-10">
+                      {avatarUrl && <AvatarImage src={avatarUrl} alt={displayName} />}
+                      <AvatarFallback className="bg-accent/10 text-accent text-sm font-semibold">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                      className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      {uploading ? (
+                        <Loader2 className="w-4 h-4 text-white animate-spin" />
+                      ) : (
+                        <Camera className="w-4 h-4 text-white" />
+                      )}
+                    </button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={handleAvatarUpload}
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-foreground truncate">{displayName}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                  </div>
                 </div>
                 <div className="p-1.5">
                   <Link
