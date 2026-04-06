@@ -181,23 +181,23 @@ const BookingForm = () => {
           ? selectedVehicle?.price_per_km || 0
           : selectedVehicle?.price_per_hour || 0;
 
-      // Store return trip and extra details as JSON in notes
-      const bookingNotes = {
-        fullName: formData.fullName,
-        email: formData.email,
-        phone: phoneNumber,
-        numPassengers: formData.numPassengers,
-        flightNumber: formData.flightNumber,
-        extraDetails: formData.extraDetails,
-        returnTrip: showReturnTrip
-          ? {
-              pickupAddress: formData.returnAddress,
-              dropoffAddress: formData.returnDropoffAddress,
-              date: formData.returnDate,
-              time: formData.returnTime,
-            }
-          : null,
-      };
+      // Build a clean, human-readable notes string
+      const noteParts: string[] = [];
+      if (formData.numPassengers && Number(formData.numPassengers) > 1) {
+        noteParts.push(`Passengers: ${formData.numPassengers}`);
+      }
+      if (formData.flightNumber) {
+        noteParts.push(`Flight: ${formData.flightNumber}`);
+      }
+      if (formData.extraDetails) {
+        noteParts.push(formData.extraDetails);
+      }
+      if (showReturnTrip && formData.returnAddress) {
+        noteParts.push(
+          `Return trip: ${formData.returnAddress} → ${formData.returnDropoffAddress || "N/A"} on ${formData.returnDate || "N/A"} at ${formData.returnTime || "N/A"}`
+        );
+      }
+      const bookingNotes = noteParts.length > 0 ? noteParts.join(" | ") : null;
 
       // Map trip types to service types (matching schema CHECK constraint)
       const serviceTypeMap: { [key: string]: string } = {
@@ -219,7 +219,7 @@ const BookingForm = () => {
         pickup_time: formData.pickupTime,
         status: "pending",
         price_estimate: priceEstimate,
-        notes: JSON.stringify(bookingNotes),
+        notes: bookingNotes,
         is_favourite: false,
         created_at: now,
         updated_at: now,

@@ -15,7 +15,7 @@ interface UploadOptions {
  */
 export const uploadImage = async (
   file: File,
-  bucket: 'vehicle-images' | 'driver-photos',
+  bucket: 'vehicle-images' | 'driver-photos' | 'user-photos',
   path: string,
   options: UploadOptions = { cacheControl: '3600', upsert: false }
 ): Promise<string> => {
@@ -67,7 +67,7 @@ export const uploadImage = async (
  * @param path - The file path to delete
  */
 export const deleteImage = async (
-  bucket: 'vehicle-images' | 'driver-photos',
+  bucket: 'vehicle-images' | 'driver-photos' | 'user-photos',
   path: string
 ): Promise<void> => {
   try {
@@ -88,7 +88,7 @@ export const deleteImage = async (
  * @param path - The file path
  */
 export const getImageUrl = (
-  bucket: 'vehicle-images' | 'driver-photos',
+  bucket: 'vehicle-images' | 'driver-photos' | 'user-photos',
   path: string
 ): string => {
   const { data } = supabase.storage.from(bucket).getPublicUrl(path);
@@ -101,7 +101,7 @@ export const getImageUrl = (
  * @param path - Optional path prefix
  */
 export const listImages = async (
-  bucket: 'vehicle-images' | 'driver-photos',
+  bucket: 'vehicle-images' | 'driver-photos' | 'user-photos',
   path?: string
 ) => {
   try {

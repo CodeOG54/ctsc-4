@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import AdminLayout from "./AdminLayout";
+import { formatNotes } from "@/lib/formatNotes";
 
 interface Booking {
   id: string;
@@ -197,9 +198,10 @@ const AdminDashboard = () => {
                       {booking.drivers?.full_name && <span>Driver: {booking.drivers.full_name}</span>}
                     </div>
 
-                    {booking.notes && (
-                      <p className="text-xs text-muted-foreground italic mb-3 break-words">Note: {booking.notes}</p>
-                    )}
+                    {booking.notes && (() => {
+                      const display = formatNotes(booking.notes);
+                      return display ? <p className="text-xs text-muted-foreground italic mb-3 break-words">Note: {display}</p> : null;
+                    })()}
 
                     {/* Actions */}
                     <div className="flex items-center gap-2 flex-wrap">
