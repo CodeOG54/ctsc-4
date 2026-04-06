@@ -67,8 +67,7 @@ export const uploadImage = async (
  * @param path - The file path to delete
  */
 export const deleteImage = async (
-  bucket: 'vehicle-images' | 'driver-photos',
-  path: string
+  bucket: 'vehicle-images' | 'driver-photos' | 'user-photos',
 ): Promise<void> => {
   try {
     const { error } = await supabase.storage.from(bucket).remove([path]);
