@@ -168,12 +168,15 @@ const DriverDashboard = () => {
           </div>
         )}
 
-        {booking.notes && (
-          <div className="flex items-start gap-2 bg-secondary/50 rounded-xl p-3">
-            <MessageSquare className="w-3 h-3 text-muted-foreground mt-0.5 shrink-0" />
-            <p className="text-xs text-muted-foreground break-words">{booking.notes}</p>
-          </div>
-        )}
+        {booking.notes && (() => {
+          const display = formatNotes(booking.notes);
+          return display ? (
+            <div className="flex items-start gap-2 bg-secondary/50 rounded-xl p-3">
+              <MessageSquare className="w-3 h-3 text-muted-foreground mt-0.5 shrink-0" />
+              <p className="text-xs text-muted-foreground break-words">{display}</p>
+            </div>
+          ) : null;
+        })()}
 
         <div className="flex gap-2 pt-1">
           <Button

@@ -100,7 +100,7 @@ export const getImageUrl = (
  * @param path - Optional path prefix
  */
 export const listImages = async (
-  bucket: 'vehicle-images' | 'driver-photos',
+  bucket: 'vehicle-images' | 'driver-photos' | 'user-photos',
   path?: string
 ) => {
   try {
