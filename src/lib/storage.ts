@@ -15,7 +15,7 @@ interface UploadOptions {
  */
 export const uploadImage = async (
   file: File,
-  bucket: 'vehicle-images' | 'driver-photos',
+  bucket: 'vehicle-images' | 'driver-photos' | 'user-photos',
   path: string,
   options: UploadOptions = { cacheControl: '3600', upsert: false }
 ): Promise<string> => {
