@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import AdminLayout from "./AdminLayout";
+import { formatNotes } from "@/lib/formatNotes";
 
 interface Booking {
   id: string;
