@@ -199,7 +199,6 @@ const AdminDashboard = () => {
                     </div>
 
                     {booking.notes && (() => {
-                      const { formatNotes } = require("@/lib/formatNotes");
                       const display = formatNotes(booking.notes);
                       return display ? <p className="text-xs text-muted-foreground italic mb-3 break-words">Note: {display}</p> : null;
                     })()}
