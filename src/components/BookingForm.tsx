@@ -219,7 +219,7 @@ const BookingForm = () => {
         pickup_time: formData.pickupTime,
         status: "pending",
         price_estimate: priceEstimate,
-        notes: JSON.stringify(bookingNotes),
+        notes: bookingNotes,
         is_favourite: false,
         created_at: now,
         updated_at: now,
