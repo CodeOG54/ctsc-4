@@ -56,6 +56,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [ratedBookings, setRatedBookings] = useState<Set<string>>(new Set());
+  const [ratingBooking, setRatingBooking] = useState<Booking | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
