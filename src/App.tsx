@@ -62,6 +62,7 @@ const App = () => (
             <Route path="/book" element={<BookNow />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/drivers" element={<AdminDrivers />} />
             <Route path="/admin/fleet" element={<AdminFleet />} />

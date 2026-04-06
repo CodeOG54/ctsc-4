@@ -210,6 +210,20 @@ const Dashboard = () => {
           )}
         </motion.div>
       </main>
+
+      {ratingBooking && (
+        <RatingDialog
+          open={!!ratingBooking}
+          onOpenChange={(open) => { if (!open) setRatingBooking(null); }}
+          bookingId={ratingBooking.id}
+          userId={user.id}
+          driverName={ratingBooking.drivers?.full_name}
+          onRated={() => {
+            setRatedBookings((prev) => new Set([...prev, ratingBooking.id]));
+            setRatingBooking(null);
+          }}
+        />
+      )}
     </div>
   );
 };
