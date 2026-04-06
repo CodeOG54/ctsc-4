@@ -24,6 +24,7 @@ import AdminDrivers from "./pages/admin/AdminDrivers";
 import AdminFleet from "./pages/admin/AdminFleet";
 import DriverDashboard from "./pages/DriverDashboard";
 import NotFound from "./pages/NotFound";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
