@@ -87,7 +87,7 @@ export const deleteImage = async (
  * @param path - The file path
  */
 export const getImageUrl = (
-  bucket: 'vehicle-images' | 'driver-photos',
+  bucket: 'vehicle-images' | 'driver-photos' | 'user-photos',
   path: string
 ): string => {
   const { data } = supabase.storage.from(bucket).getPublicUrl(path);
