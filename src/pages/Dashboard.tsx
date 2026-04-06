@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Calendar, Clock, MapPin, Car, User, Plus, Activity, CheckCircle2, LayoutList } from "lucide-react";
+import { Calendar, Clock, MapPin, Car, User, Plus, Activity, CheckCircle2, LayoutList, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import AuthNavbar from "@/components/AuthNavbar";
+import RatingDialog from "@/components/RatingDialog";
 
 interface Booking {
   id: string;
