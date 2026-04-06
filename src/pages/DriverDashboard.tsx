@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDriverCheck } from "@/hooks/useDriverCheck";
 import AuthNavbar from "@/components/AuthNavbar";
+import { formatNotes } from "@/lib/formatNotes";
 
 interface DriverBooking {
   id: string;
