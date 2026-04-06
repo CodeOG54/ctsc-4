@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { LogOut, ChevronDown, Car, Camera, Loader2 } from "lucide-react";
+import { LogOut, ChevronDown, Car, Camera, Loader2, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/lib/supabase";
@@ -133,6 +133,16 @@ const AuthNavbar = ({ role }: AuthNavbarProps) => {
                   </div>
                 </div>
                 <div className="p-1.5">
+                  {role === "user" && (
+                    <Link
+                      to="/profile"
+                      onClick={() => setOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+                    >
+                      <User className="w-4 h-4" />
+                      Profile Settings
+                    </Link>
+                  )}
                   <Link
                     to="/"
                     onClick={() => setOpen(false)}

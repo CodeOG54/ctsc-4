@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Calendar, Clock, MapPin, Car, User, Plus, Activity, CheckCircle2, LayoutList } from "lucide-react";
+import { Calendar, Clock, MapPin, Car, User, Plus, Activity, CheckCircle2, LayoutList, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import AuthNavbar from "@/components/AuthNavbar";
+import RatingDialog from "@/components/RatingDialog";
 
 interface Booking {
   id: string;
@@ -55,6 +56,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [ratedBookings, setRatedBookings] = useState<Set<string>>(new Set());
+  const [ratingBooking, setRatingBooking] = useState<Booking | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -72,6 +75,10 @@ const Dashboard = () => {
       setLoading(false);
     };
     fetchBookings();
+    // Load already-rated bookings
+    supabase.from("booking_ratings").select("booking_id").eq("user_id", user.id).then(({ data }) => {
+      if (data) setRatedBookings(new Set(data.map((r: any) => r.booking_id)));
+    });
     const channel = supabase
       .channel("bookings-realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "bookings", filter: `user_id=eq.${user.id}` }, () => { fetchBookings(); })
@@ -176,11 +183,26 @@ const Dashboard = () => {
                         {booking.drivers?.full_name && <span className="flex items-center gap-1"><User className="w-3 h-3" />{booking.drivers.full_name}</span>}
                       </div>
                     </div>
-                    {booking.price_estimate && (
-                      <div className="shrink-0">
+                    <div className="flex items-center gap-3 shrink-0">
+                      {booking.status === "completed" && !ratedBookings.has(booking.id) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="rounded-full gap-1.5 text-accent border-accent/30 hover:bg-accent/10"
+                          onClick={() => setRatingBooking(booking)}
+                        >
+                          <Star className="w-3.5 h-3.5" /> Rate
+                        </Button>
+                      )}
+                      {booking.status === "completed" && ratedBookings.has(booking.id) && (
+                        <span className="flex items-center gap-1 text-xs text-accent">
+                          <Star className="w-3.5 h-3.5 fill-accent" /> Rated
+                        </span>
+                      )}
+                      {booking.price_estimate && (
                         <p className="text-lg font-bold text-accent">R{booking.price_estimate}</p>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </motion.div>
               ))}
@@ -188,6 +210,20 @@ const Dashboard = () => {
           )}
         </motion.div>
       </main>
+
+      {ratingBooking && (
+        <RatingDialog
+          open={!!ratingBooking}
+          onOpenChange={(open) => { if (!open) setRatingBooking(null); }}
+          bookingId={ratingBooking.id}
+          userId={user.id}
+          driverName={ratingBooking.drivers?.full_name}
+          onRated={() => {
+            setRatedBookings((prev) => new Set([...prev, ratingBooking.id]));
+            setRatingBooking(null);
+          }}
+        />
+      )}
     </div>
   );
 };
