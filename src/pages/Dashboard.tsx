@@ -183,11 +183,26 @@ const Dashboard = () => {
                         {booking.drivers?.full_name && <span className="flex items-center gap-1"><User className="w-3 h-3" />{booking.drivers.full_name}</span>}
                       </div>
                     </div>
-                    {booking.price_estimate && (
-                      <div className="shrink-0">
+                    <div className="flex items-center gap-3 shrink-0">
+                      {booking.status === "completed" && !ratedBookings.has(booking.id) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="rounded-full gap-1.5 text-accent border-accent/30 hover:bg-accent/10"
+                          onClick={() => setRatingBooking(booking)}
+                        >
+                          <Star className="w-3.5 h-3.5" /> Rate
+                        </Button>
+                      )}
+                      {booking.status === "completed" && ratedBookings.has(booking.id) && (
+                        <span className="flex items-center gap-1 text-xs text-accent">
+                          <Star className="w-3.5 h-3.5 fill-accent" /> Rated
+                        </span>
+                      )}
+                      {booking.price_estimate && (
                         <p className="text-lg font-bold text-accent">R{booking.price_estimate}</p>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </motion.div>
               ))}
