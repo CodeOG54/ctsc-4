@@ -75,6 +75,10 @@ const Dashboard = () => {
       setLoading(false);
     };
     fetchBookings();
+    // Load already-rated bookings
+    supabase.from("booking_ratings").select("booking_id").eq("user_id", user.id).then(({ data }) => {
+      if (data) setRatedBookings(new Set(data.map((r: any) => r.booking_id)));
+    });
     const channel = supabase
       .channel("bookings-realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "bookings", filter: `user_id=eq.${user.id}` }, () => { fetchBookings(); })
