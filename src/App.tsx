@@ -23,6 +23,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminDrivers from "./pages/admin/AdminDrivers";
 import AdminFleet from "./pages/admin/AdminFleet";
 import DriverDashboard from "./pages/DriverDashboard";
+import DriverProfile from "./pages/DriverProfile";
 import NotFound from "./pages/NotFound";
 import Profile from "./pages/Profile";
 
