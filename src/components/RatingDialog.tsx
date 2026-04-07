@@ -17,6 +17,7 @@ interface RatingDialogProps {
   onOpenChange: (open: boolean) => void;
   bookingId: string;
   userId: string;
+  driverId?: string | null;
   driverName?: string | null;
   onRated?: () => void;
 }
