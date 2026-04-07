@@ -23,6 +23,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminDrivers from "./pages/admin/AdminDrivers";
 import AdminFleet from "./pages/admin/AdminFleet";
 import DriverDashboard from "./pages/DriverDashboard";
+import DriverProfile from "./pages/DriverProfile";
 import NotFound from "./pages/NotFound";
 import Profile from "./pages/Profile";
 
@@ -67,6 +68,7 @@ const App = () => (
             <Route path="/admin/drivers" element={<AdminDrivers />} />
             <Route path="/admin/fleet" element={<AdminFleet />} />
             <Route path="/driver" element={<DriverDashboard />} />
+            <Route path="/driver/profile" element={<DriverProfile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

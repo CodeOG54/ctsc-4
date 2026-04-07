@@ -217,6 +217,7 @@ const Dashboard = () => {
           onOpenChange={(open) => { if (!open) setRatingBooking(null); }}
           bookingId={ratingBooking.id}
           userId={user.id}
+          driverId={ratingBooking.driver_id}
           driverName={ratingBooking.drivers?.full_name}
           onRated={() => {
             setRatedBookings((prev) => new Set([...prev, ratingBooking.id]));

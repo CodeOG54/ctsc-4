@@ -17,11 +17,12 @@ interface RatingDialogProps {
   onOpenChange: (open: boolean) => void;
   bookingId: string;
   userId: string;
+  driverId?: string | null;
   driverName?: string | null;
   onRated?: () => void;
 }
 
-const RatingDialog = ({ open, onOpenChange, bookingId, userId, driverName, onRated }: RatingDialogProps) => {
+const RatingDialog = ({ open, onOpenChange, bookingId, userId, driverId, driverName, onRated }: RatingDialogProps) => {
   const { toast } = useToast();
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
@@ -38,6 +39,7 @@ const RatingDialog = ({ open, onOpenChange, bookingId, userId, driverName, onRat
       const { error } = await supabase.from("booking_ratings").insert({
         booking_id: bookingId,
         user_id: userId,
+        driver_id: driverId || null,
         rating,
         comment: comment.trim() || null,
       });
