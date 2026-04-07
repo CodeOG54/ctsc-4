@@ -39,6 +39,7 @@ const RatingDialog = ({ open, onOpenChange, bookingId, userId, driverId, driverN
       const { error } = await supabase.from("booking_ratings").insert({
         booking_id: bookingId,
         user_id: userId,
+        driver_id: driverId || null,
         rating,
         comment: comment.trim() || null,
       });
