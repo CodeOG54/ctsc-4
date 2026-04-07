@@ -22,7 +22,7 @@ interface RatingDialogProps {
   onRated?: () => void;
 }
 
-const RatingDialog = ({ open, onOpenChange, bookingId, userId, driverName, onRated }: RatingDialogProps) => {
+const RatingDialog = ({ open, onOpenChange, bookingId, userId, driverId, driverName, onRated }: RatingDialogProps) => {
   const { toast } = useToast();
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
