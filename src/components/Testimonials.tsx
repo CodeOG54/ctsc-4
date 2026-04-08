@@ -9,65 +9,49 @@ import {
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 
+const getInitials = (name: string) => {
+  return name
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase())
+    .join('');
+};
+
 const testimonials = [
   {
-    name: "Sarah Johnson",
-    role: "Business Executive",
-    route: "Airport → V&A Waterfront",
-    image:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop",
+    name: "Maneesha Sookenram",
     content:
-      "Cape Town Rides has been absolutely fantastic for my business travel needs. The drivers are professional, the vehicles are immaculate, and the service is consistently excellent.",
+      "Awesome as usual. Very reliable. Good vehicles.  Drivers are very polite and helpful. Garth and Enrico were great. Last year also they did our transfer.  This year we even rented a car from them. Special mention to Nikita who assisted us and helped with all our requests. Highly recommended.",
     rating: 5,
   },
   {
-    name: "Michael Chen",
-    role: "Tourist",
-    route: "Table Mountain → Camps Bay",
-    image:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop",
+    name: "Ana Jovanovic",
     content:
-      "My first experience in Cape Town was made special thanks to the knowledgeable drivers. They shared great local tips while getting me everywhere safely.",
+      "We had a wonderful experience with this company. We loved our driver Mbombo who was a great guide, showed us Cape Town and took an extra step and went over and beyond! Thanks for everything, we will hire you again!",
     rating: 5,
   },
   {
-    name: "Emma Williams",
-    role: "Event Coordinator",
-    route: "CTICC → Constantia",
-    image:
-      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop",
+    name: "Cloe Smith",
     content:
-      "Reliable, punctual, and professional. I've booked Cape Town Rides for multiple corporate events and they've never let me down. Highly recommend!",
+      "Fabulous service - great comms from Tracy and a superb driving experience from Enrico. Thank you!",
     rating: 5,
   },
   {
-    name: "James Mandela",
-    role: "Tech Founder",
-    route: "Stellenbosch → CBD",
-    image:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop",
+    name: "Edward Keown",
+
     content:
-      "The app is intuitive, the drivers are courteous, and you always feel safe. This is exactly what premium transportation should look like.",
+      "The pickup was precisely on time. The ride was smooth and we were on time for book-in. Can highly recommend this service! Can’t wait for my next trip!",
     rating: 5,
   },
   {
-    name: "Lisa Anderson",
-    role: "Academic Researcher",
-    route: "UCT → Kirstenbosch",
-    image:
-      "https://images.unsplash.com/photo-1487412992651-4d1d655c64e5?w=150&h=150&fit=crop",
+    name: "Jason Bagley",
     content:
-      "Exceptional service from start to finish. The attention to detail and commitment to safety really sets Cape Town Rides apart from competitors.",
+      "Garth was our driver for the afternoon and did a great job. Was in constant communication and on time for both collection and drop off.",
     rating: 5,
   },
   {
-    name: "David Thompson",
-    role: "Travel Writer",
-    route: "Airport → Franschhoek",
-    image:
-      "https://images.unsplash.com/photo-1507101105822-7f3b6405be75?w=150&h=150&fit=crop",
+    name: "Ivan Kakolo",
     content:
-      "After riding with many services worldwide, Cape Town Rides offers a standard of service that's truly world-class. A gem in the city!",
+      "Awesome service😊👌, friendly drivers they are always in time and clean cars, our tour was just amazing.",
     rating: 5,
   },
 ];
@@ -83,16 +67,13 @@ const TestimonialCard = ({
 
     {/* Author info at top */}
     <div className="flex items-center gap-3 mb-5">
-      <img
-        src={testimonial.image}
-        alt={testimonial.name}
-        className="w-12 h-12 rounded-full object-cover ring-2 ring-accent/20 group-hover:ring-accent/40 transition-all duration-300"
-      />
+      <div className="w-12 h-12 rounded-full bg-accent/20 ring-2 ring-accent/20 group-hover:ring-accent/40 transition-all duration-300 flex items-center justify-center text-accent font-semibold text-sm">
+        {getInitials(testimonial.name)}
+      </div>
       <div className="flex-1 min-w-0">
         <p className="font-semibold text-foreground text-sm truncate">
           {testimonial.name}
         </p>
-        <p className="text-xs text-muted-foreground">{testimonial.role}</p>
       </div>
     </div>
 
@@ -109,12 +90,12 @@ const TestimonialCard = ({
     </p>
 
     {/* Route tag */}
-    <div className="mt-5 pt-4 border-t border-border">
+    {/* <div className="mt-5 pt-4 border-t border-border">
       <div className="flex items-center gap-1.5 text-xs text-accent font-medium">
         <MapPin className="w-3 h-3" />
         <span>{testimonial.route}</span>
       </div>
-    </div>
+    </div> */}
   </div>
 );
 
@@ -191,9 +172,9 @@ const Testimonials = () => {
           className="mt-12 sm:mt-16 flex flex-wrap justify-center gap-8 sm:gap-16"
         >
           {[
-            { value: "4.9★", label: "Average Rating" },
-            { value: "5,000+", label: "Happy Riders" },
-            { value: "15,000+", label: "Trips Completed" },
+            { value: "4.8★", label: "Average Rating" },
+            { value: "1,000+", label: "Happy Riders" },
+            { value: "5,000+", label: "Trips Completed" },
           ].map((stat) => (
             <div key={stat.label} className="text-center">
               <p className="text-2xl sm:text-3xl font-bold text-accent">
