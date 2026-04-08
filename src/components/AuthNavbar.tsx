@@ -63,10 +63,20 @@ const AuthNavbar = ({ role }: AuthNavbarProps) => {
     setUploading(true);
     try {
       const ext = file.name.split(".").pop();
-      const path = `${user.id}/avatar.${ext}`;
-      const publicUrl = await uploadImage(file, "user-photos", path, { cacheControl: "3600", upsert: true });
-      await supabase.from("profiles").update({ avatar_url: publicUrl, updated_at: new Date().toISOString() }).eq("id", user.id);
-      setAvatarUrl(publicUrl + "?t=" + Date.now());
+      if (role === "driver") {
+        const path = `${user.id}/driver-avatar.${ext}`;
+        const publicUrl = await uploadImage(file, "user-photos", path, { cacheControl: "3600", upsert: true });
+        const { data: driverData } = await supabase.from("drivers").select("id").eq("auth_user_id", user.id).single();
+        if (driverData) {
+          await supabase.from("drivers").update({ avatar_url: publicUrl }).eq("id", driverData.id);
+        }
+        setAvatarUrl(publicUrl + "?t=" + Date.now());
+      } else {
+        const path = `${user.id}/avatar.${ext}`;
+        const publicUrl = await uploadImage(file, "user-photos", path, { cacheControl: "3600", upsert: true });
+        await supabase.from("profiles").update({ avatar_url: publicUrl, updated_at: new Date().toISOString() }).eq("id", user.id);
+        setAvatarUrl(publicUrl + "?t=" + Date.now());
+      }
     } catch (err) {
       console.error("Avatar upload failed:", err);
     } finally {
