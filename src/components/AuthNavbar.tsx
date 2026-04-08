@@ -68,7 +68,7 @@ const AuthNavbar = ({ role }: AuthNavbarProps) => {
       const ext = file.name.split(".").pop();
       if (role === "driver") {
         const path = `${user.id}/driver-avatar.${ext}`;
-        const publicUrl = await uploadImage(file, "user-photos", path, { cacheControl: "3600", upsert: true });
+        const publicUrl = await uploadImage(file, "driver-photos", path, { cacheControl: "3600", upsert: true });
         const { data: driverId } = await supabase.rpc("get_current_driver_id");
         if (driverId) {
           await supabase.from("drivers").update({ avatar_url: publicUrl }).eq("id", driverId);

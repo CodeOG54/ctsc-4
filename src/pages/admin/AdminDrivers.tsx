@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Users, Plus, Edit2, Trash2, Phone, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,9 +21,8 @@ interface Driver {
 }
 
 const AdminDrivers = () => {
-  const { user, loading: authLoading } = useAuth();
-  const { isAdmin, loading: adminLoading } = useAdminCheck();
-  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { isAdmin } = useAdminCheck();
   const { toast } = useToast();
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,13 +37,6 @@ const AdminDrivers = () => {
     license_number: "",
     password: "",
   });
-
-  useEffect(() => {
-    if (!authLoading && !adminLoading) {
-      if (!user) navigate("/auth");
-      else if (!isAdmin) navigate("/dashboard");
-    }
-  }, [user, isAdmin, authLoading, adminLoading, navigate]);
 
   const fetchDrivers = async () => {
     const { data } = await supabase
@@ -154,7 +145,7 @@ const AdminDrivers = () => {
     fetchDrivers();
   };
 
-  if (authLoading || adminLoading || !isAdmin) return null;
+  if (!isAdmin) return null;
 
   return (
     <AdminLayout>

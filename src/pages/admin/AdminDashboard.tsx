@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Car, Users, CalendarCheck, Clock, CheckCircle, XCircle,
@@ -57,20 +56,12 @@ const statusColors: Record<string, string> = {
 };
 
 const AdminDashboard = () => {
-  const { user, loading: authLoading } = useAuth();
-  const { isAdmin, loading: adminLoading } = useAdminCheck();
-  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { isAdmin } = useAdminCheck();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!authLoading && !adminLoading) {
-      if (!user) navigate("/auth");
-      else if (!isAdmin) navigate("/dashboard");
-    }
-  }, [user, isAdmin, authLoading, adminLoading, navigate]);
 
   const fetchData = async () => {
     const [bookingsRes, driversRes, profilesRes] = await Promise.all([
@@ -115,7 +106,7 @@ const AdminDashboard = () => {
     setActionLoading(null);
   };
 
-  if (authLoading || adminLoading || !isAdmin) return null;
+  if (!isAdmin) return null;
 
   const stats = [
     { label: "Total Bookings", value: bookings.length, icon: CalendarCheck, gradient: "from-blue-500/10 to-blue-600/5", color: "text-blue-500" },

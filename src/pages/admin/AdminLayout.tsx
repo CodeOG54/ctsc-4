@@ -1,8 +1,9 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, Truck, LogOut, ChevronLeft, Menu, X } from "lucide-react";
+import { LayoutDashboard, Users, Truck, LogOut, ChevronLeft, Menu, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import logo from "@/assets/logo.png";
 
@@ -15,11 +16,45 @@ const sidebarLinks = [
 const AdminLayout = ({ children }: { children: ReactNode }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
+  const { isAdmin, loading: adminLoading } = useAdminCheck();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && !adminLoading) {
+      if (!user) navigate("/auth");
+      else if (!isAdmin) navigate("/dashboard");
+    }
+  }, [user, isAdmin, authLoading, adminLoading, navigate]);
 
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Admin";
   const initials = displayName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
+
+  // Show loading skeleton inside the layout shell instead of blank page
+  if (authLoading || adminLoading) {
+    return (
+      <div className="min-h-screen flex bg-background">
+        <aside className="w-64 border-r border-border/50 bg-card hidden lg:flex flex-col">
+          <div className="p-5 border-b border-border/50">
+            <Link to="/" className="flex items-center gap-2.5">
+              <img src={logo} alt="CTSC Travel" className="h-8 w-auto" />
+              <span className="font-bold text-foreground text-sm">Admin Panel</span>
+            </Link>
+          </div>
+          <nav className="flex-1 p-3 space-y-2">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-10 rounded-xl bg-secondary/50 animate-pulse" />
+            ))}
+          </nav>
+        </aside>
+        <div className="flex-1 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 text-muted-foreground animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) return null;
 
   return (
     <div className="min-h-screen flex bg-background">
