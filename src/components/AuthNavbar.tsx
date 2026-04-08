@@ -133,6 +133,14 @@ const AuthNavbar = ({ role }: AuthNavbarProps) => {
                   </div>
                 </div>
                 <div className="p-1.5">
+                  <Link
+                    to={role === "driver" ? "/driver" : "/dashboard"}
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+                  >
+                    <Car className="w-4 h-4" />
+                    Dashboard
+                  </Link>
                   {role === "user" && (
                     <Link
                       to="/profile"
