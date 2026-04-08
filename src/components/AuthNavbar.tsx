@@ -26,11 +26,21 @@ const AuthNavbar = ({ role }: AuthNavbarProps) => {
   useEffect(() => {
     if (!user) return;
     const loadAvatar = async () => {
-      const { data } = await supabase.from("profiles").select("avatar_url").eq("id", user.id).single();
-      if (data?.avatar_url) setAvatarUrl(data.avatar_url);
+      if (role === "driver") {
+        // Load avatar from drivers table via the driver linked to this user
+        const { data } = await supabase
+          .from("drivers")
+          .select("avatar_url")
+          .eq("auth_user_id", user.id)
+          .single();
+        if (data?.avatar_url) setAvatarUrl(data.avatar_url);
+      } else {
+        const { data } = await supabase.from("profiles").select("avatar_url").eq("id", user.id).single();
+        if (data?.avatar_url) setAvatarUrl(data.avatar_url);
+      }
     };
     loadAvatar();
-  }, [user]);
+  }, [user, role]);
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
