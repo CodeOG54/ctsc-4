@@ -146,7 +146,7 @@ const DriverProfile = () => {
     try {
       const ext = file.name.split(".").pop();
       const path = `${user.id}/driver-avatar.${ext}`;
-      const publicUrl = await uploadImage(file, "user-photos", path, { cacheControl: "3600", upsert: true });
+      const publicUrl = await uploadImage(file, "driver-photos", path, { cacheControl: "3600", upsert: true });
       await supabase.from("drivers").update({ avatar_url: publicUrl }).eq("id", driverId);
       setDriver(prev => prev ? { ...prev, avatar_url: publicUrl + "?t=" + Date.now() } : prev);
       toast({ title: "Photo updated!" });
