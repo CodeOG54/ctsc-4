@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { motion } from "framer-motion";
 import {
   Car, Users, CalendarCheck, Clock, CheckCircle, XCircle,
   TrendingUp, Loader2
