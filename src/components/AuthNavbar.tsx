@@ -27,13 +27,16 @@ const AuthNavbar = ({ role }: AuthNavbarProps) => {
     if (!user) return;
     const loadAvatar = async () => {
       if (role === "driver") {
-        // Load avatar from drivers table via the driver linked to this user
-        const { data } = await supabase
-          .from("drivers")
-          .select("avatar_url")
-          .eq("auth_user_id", user.id)
-          .single();
-        if (data?.avatar_url) setAvatarUrl(data.avatar_url);
+        // Use RPC to get driver ID (matched by email), then load avatar
+        const { data: driverId } = await supabase.rpc("get_current_driver_id");
+        if (driverId) {
+          const { data } = await supabase
+            .from("drivers")
+            .select("avatar_url")
+            .eq("id", driverId)
+            .single();
+          if (data?.avatar_url) setAvatarUrl(data.avatar_url);
+        }
       } else {
         const { data } = await supabase.from("profiles").select("avatar_url").eq("id", user.id).single();
         if (data?.avatar_url) setAvatarUrl(data.avatar_url);
@@ -66,9 +69,9 @@ const AuthNavbar = ({ role }: AuthNavbarProps) => {
       if (role === "driver") {
         const path = `${user.id}/driver-avatar.${ext}`;
         const publicUrl = await uploadImage(file, "user-photos", path, { cacheControl: "3600", upsert: true });
-        const { data: driverData } = await supabase.from("drivers").select("id").eq("auth_user_id", user.id).single();
-        if (driverData) {
-          await supabase.from("drivers").update({ avatar_url: publicUrl }).eq("id", driverData.id);
+        const { data: driverId } = await supabase.rpc("get_current_driver_id");
+        if (driverId) {
+          await supabase.from("drivers").update({ avatar_url: publicUrl }).eq("id", driverId);
         }
         setAvatarUrl(publicUrl + "?t=" + Date.now());
       } else {
