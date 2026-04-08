@@ -24,22 +24,14 @@ interface Vehicle {
 }
 
 const AdminFleet = () => {
-  const { user, loading: authLoading } = useAuth();
-  const { isAdmin, loading: adminLoading } = useAdminCheck();
-  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { isAdmin } = useAdminCheck();
   const { toast } = useToast();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", description: "", capacity: "4", price_per_km: "", price_per_hour: "", image_url: "" });
-
-  useEffect(() => {
-    if (!authLoading && !adminLoading) {
-      if (!user) navigate("/auth");
-      else if (!isAdmin) navigate("/dashboard");
-    }
-  }, [user, isAdmin, authLoading, adminLoading, navigate]);
 
   const fetchVehicles = async () => {
     const { data } = await supabase.from("vehicles").select("*").order("created_at", { ascending: false });
@@ -101,7 +93,7 @@ const AdminFleet = () => {
     fetchVehicles();
   };
 
-  if (authLoading || adminLoading || !isAdmin) return null;
+  if (!isAdmin) return null;
 
   return (
     <AdminLayout>
