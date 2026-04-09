@@ -46,7 +46,47 @@ const Navbar = () => {
       className="fixed top-4 left-4 right-4 z-50"
     >
       <nav className="container mx-auto flex items-center justify-between px-6 py-2.5 rounded-full bg-background/70 backdrop-blur-xl border border-border/50 shadow-lg shadow-black/5">
-        <Link to="/" className="flex items-center gap-2">
+        {/* Mobile: auth left | Desktop: logo left */}
+        <div className="lg:hidden flex items-center">
+          {user ? (
+            <div className="flex items-center gap-1">
+              {isAdmin && (
+                <Link to="/admin">
+                  <Button variant="ghost" size="sm" className="rounded-full text-xs font-medium">
+                    Admin
+                  </Button>
+                </Link>
+              )}
+              {isDriver && (
+                <Link to="/driver">
+                  <Button variant="ghost" size="sm" className="rounded-full text-xs font-medium">
+                    Dashboard
+                  </Button>
+                </Link>
+              )}
+              {!isDriver && !isAdmin && (
+                <Link to="/dashboard">
+                  <Button variant="ghost" size="sm" className="rounded-full text-xs font-medium">
+                    Dashboard
+                  </Button>
+                </Link>
+              )}
+            </div>
+          ) : (
+            <Link to="/auth">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-foreground/70 hover:text-foreground rounded-full"
+              >
+                <User className="w-5 h-5" />
+              </Button>
+            </Link>
+          )}
+        </div>
+
+        {/* Logo: always visible, centered on mobile */}
+        <Link to="/" className="flex items-center gap-2 lg:order-first">
           <img src={logo} alt="CTSC Travel" className="h-8 w-auto" />
         </Link>
 
@@ -108,47 +148,51 @@ const Navbar = () => {
           )}
         </div>
 
+        {/* Desktop: right side buttons | Mobile: burger only */}
         <div className="flex items-center gap-2.5">
           <Link to="/book" className="hidden sm:block">
             <Button variant="accent" size="sm" className="rounded-full px-5">
               Book Now
             </Button>
           </Link>
-          {user ? (
-            <div className="flex items-center gap-1.5">
-              {isAdmin && (
-                <Link to="/admin">
-                  <Button variant="ghost" size="sm" className="rounded-full text-xs font-medium">
-                    Admin
-                  </Button>
-                </Link>
-              )}
-              {isDriver && (
-                <Link to="/driver">
-                  <Button variant="ghost" size="sm" className="rounded-full text-xs font-medium">
-                    Dashboard
-                  </Button>
-                </Link>
-              )}
-              {!isDriver && !isAdmin && (
-                <Link to="/dashboard">
-                  <Button variant="ghost" size="sm" className="rounded-full text-xs font-medium">
-                    Dashboard
-                  </Button>
-                </Link>
-              )}
-            </div>
-          ) : (
-            <Link to="/auth">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-foreground/70 hover:text-foreground rounded-full"
-              >
-                <User className="w-5 h-5" />
-              </Button>
-            </Link>
-          )}
+          {/* Desktop auth buttons */}
+          <div className="hidden lg:flex items-center gap-1.5">
+            {user ? (
+              <>
+                {isAdmin && (
+                  <Link to="/admin">
+                    <Button variant="ghost" size="sm" className="rounded-full text-xs font-medium">
+                      Admin
+                    </Button>
+                  </Link>
+                )}
+                {isDriver && (
+                  <Link to="/driver">
+                    <Button variant="ghost" size="sm" className="rounded-full text-xs font-medium">
+                      Dashboard
+                    </Button>
+                  </Link>
+                )}
+                {!isDriver && !isAdmin && (
+                  <Link to="/dashboard">
+                    <Button variant="ghost" size="sm" className="rounded-full text-xs font-medium">
+                      Dashboard
+                    </Button>
+                  </Link>
+                )}
+              </>
+            ) : (
+              <Link to="/auth">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-foreground/70 hover:text-foreground rounded-full"
+                >
+                  <User className="w-5 h-5" />
+                </Button>
+              </Link>
+            )}
+          </div>
           <button
             className="lg:hidden text-foreground/70 hover:text-foreground"
             onClick={() => setMobileOpen(!mobileOpen)}
