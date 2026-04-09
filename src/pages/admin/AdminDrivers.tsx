@@ -274,13 +274,13 @@ const AdminDrivers = () => {
                 key={driver.id}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="rounded-xl bg-card border border-border p-5 flex items-center justify-between"
+                className="rounded-xl bg-card border border-border p-4 sm:p-5"
               >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-foreground">{driver.full_name}</span>
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2 flex-wrap min-w-0">
+                    <span className="font-medium text-foreground truncate">{driver.full_name}</span>
                     <span
-                      className={`px-2 py-0.5 rounded-full text-xs ${
+                      className={`px-2 py-0.5 rounded-full text-xs shrink-0 ${
                         driver.is_active
                           ? "bg-green-500/10 text-green-600"
                           : "bg-destructive/10 text-destructive"
@@ -289,31 +289,32 @@ const AdminDrivers = () => {
                       {driver.is_active ? "Active" : "Inactive"}
                     </span>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    {driver.email && (
-                      <span className="flex items-center gap-1">
-                        <Mail className="w-3 h-3" /> {driver.email}
-                      </span>
-                    )}
-                    {driver.phone && (
-                      <span className="flex items-center gap-1">
-                        <Phone className="w-3 h-3" /> {driver.phone}
-                      </span>
-                    )}
-                    {driver.license_number && <span>License: {driver.license_number}</span>}
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(driver)}>
+                      <Edit2 className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => toggleActive(driver.id, driver.is_active)}
+                    >
+                      <Trash2 className="w-4 h-4 text-muted-foreground" />
+                    </Button>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon" onClick={() => handleEdit(driver)}>
-                    <Edit2 className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => toggleActive(driver.id, driver.is_active)}
-                  >
-                    <Trash2 className="w-4 h-4 text-muted-foreground" />
-                  </Button>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-xs text-muted-foreground">
+                  {driver.email && (
+                    <span className="flex items-center gap-1 truncate">
+                      <Mail className="w-3 h-3 shrink-0" /> <span className="truncate">{driver.email}</span>
+                    </span>
+                  )}
+                  {driver.phone && (
+                    <span className="flex items-center gap-1">
+                      <Phone className="w-3 h-3 shrink-0" /> {driver.phone}
+                    </span>
+                  )}
+                  {driver.license_number && <span className="truncate">License: {driver.license_number}</span>}
                 </div>
               </motion.div>
             ))}
