@@ -30,7 +30,7 @@ const Fleet = () => (
         </motion.div>
 
         {/* Fleet Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto mb-16 px-2 sm:px-0">
           {vehicles.map((v, i) => (
             <motion.div
               key={v.id}

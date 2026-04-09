@@ -154,7 +154,7 @@ const Testimonials = () => {
                 key={testimonial.name}
                 className={cn(
                   "pl-4",
-                  isMobile ? "basis-[85%]" : "md:basis-1/2 lg:basis-1/3"
+                  isMobile ? "basis-[92%]" : "md:basis-1/2 lg:basis-1/3"
                 )}
               >
                 <TestimonialCard testimonial={testimonial} />
