@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { Truck, Plus, Edit2, Trash2 } from "lucide-react";
+import { Truck, Plus, Edit2, Trash2, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase";
+import { uploadImage } from "@/lib/storage";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { useToast } from "@/hooks/use-toast";
@@ -31,6 +32,9 @@ const AdminFleet = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", description: "", capacity: "4", price_per_km: "", price_per_hour: "", image_url: "" });
+  const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchVehicles = async () => {
     const { data } = await supabase.from("vehicles").select("*").order("created_at", { ascending: false });
@@ -46,6 +50,27 @@ const AdminFleet = () => {
     setForm({ name: "", description: "", capacity: "4", price_per_km: "", price_per_hour: "", image_url: "" });
     setEditingId(null);
     setShowForm(false);
+    setPreviewUrl(null);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `vehicles/${Date.now()}.${ext}`;
+      const publicUrl = await uploadImage(file, "vehicle-images", path, { cacheControl: "3600", upsert: true });
+      setForm(prev => ({ ...prev, image_url: publicUrl }));
+      setPreviewUrl(publicUrl);
+      toast({ title: "Image uploaded" });
+    } catch (err: any) {
+      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   const handleSave = async () => {
@@ -83,6 +108,7 @@ const AdminFleet = () => {
       price_per_hour: v.price_per_hour ? String(v.price_per_hour) : "",
       image_url: v.image_url || "",
     });
+    setPreviewUrl(v.image_url || null);
     setEditingId(v.id);
     setShowForm(true);
   };
@@ -133,8 +159,38 @@ const AdminFleet = () => {
                 <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
               </div>
               <div className="space-y-2 sm:col-span-2">
-                <Label>Image URL</Label>
-                <Input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} />
+                <Label>Vehicle Image</Label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+                {previewUrl ? (
+                  <div className="relative w-full h-40 rounded-lg overflow-hidden border border-border">
+                    <img src={previewUrl} alt="Vehicle" className="w-full h-full object-cover" />
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2 h-7 w-7"
+                      onClick={() => { setPreviewUrl(null); setForm(prev => ({ ...prev, image_url: "" })); }}
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full h-24 border-dashed gap-2"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                  >
+                    <Upload className="w-5 h-5" />
+                    {uploading ? "Uploading..." : "Upload Image"}
+                  </Button>
+                )}
               </div>
             </div>
             <div className="flex gap-2">
