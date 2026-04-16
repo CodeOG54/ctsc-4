@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Calendar, Clock, MapPin, Car, User, Plus, Activity, CheckCircle2, LayoutList, Star } from "lucide-react";
+import { Calendar, Clock, MapPin, Car, User, Plus, Activity, CheckCircle2, LayoutList, Star, CreditCard, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
@@ -23,6 +23,7 @@ interface Booking {
   price_estimate: number | null;
   is_favourite: boolean;
   notes: string | null;
+  payment_status: string | null;
   created_at: string;
   updated_at: string;
   vehicles?: { name: string } | null;
@@ -58,6 +59,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [ratedBookings, setRatedBookings] = useState<Set<string>>(new Set());
   const [ratingBooking, setRatingBooking] = useState<Booking | null>(null);
+  const [payingBookingId, setPayingBookingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -68,7 +70,7 @@ const Dashboard = () => {
     const fetchBookings = async () => {
       const { data } = await supabase
         .from("bookings")
-        .select("id, user_id, vehicle_id, driver_id, service_type, booking_type, pickup_location, dropoff_location, hours, pickup_date, pickup_time, status, price_estimate, is_favourite, notes, created_at, updated_at, vehicles:vehicle_id(name), drivers:driver_id(full_name)")
+        .select("id, user_id, vehicle_id, driver_id, service_type, booking_type, pickup_location, dropoff_location, hours, pickup_date, pickup_time, status, price_estimate, is_favourite, notes, payment_status, created_at, updated_at, vehicles:vehicle_id(name), drivers:driver_id(full_name)")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
       setBookings((data as unknown as Booking[]) || []);
@@ -164,6 +166,18 @@ const Dashboard = () => {
                         <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusColors[booking.status] || ""}`}>
                           {statusLabels[booking.status] || booking.status.replace(/_/g, " ")}
                         </span>
+                        {booking.payment_status && (
+                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                            booking.payment_status === "paid"
+                              ? "bg-green-500/10 text-green-600 border-green-500/20"
+                              : booking.payment_status === "failed"
+                              ? "bg-destructive/10 text-destructive border-destructive/20"
+                              : "bg-yellow-500/10 text-yellow-600 border-yellow-500/20"
+                          }`}>
+                            <CreditCard className="w-3 h-3 inline mr-1" />
+                            {booking.payment_status === "paid" ? "Paid" : booking.payment_status === "failed" ? "Payment Failed" : "Unpaid"}
+                          </span>
+                        )}
                         <span className="text-xs text-muted-foreground capitalize">{booking.service_type.replace(/_/g, " ")}</span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -183,7 +197,34 @@ const Dashboard = () => {
                         {booking.drivers?.full_name && <span className="flex items-center gap-1"><User className="w-3 h-3" />{booking.drivers.full_name}</span>}
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex items-center gap-3 shrink-0 flex-wrap">
+                      {booking.payment_status !== "paid" && !["cancelled", "completed"].includes(booking.status) && booking.price_estimate && (
+                        <Button
+                          variant="accent"
+                          size="sm"
+                          className="rounded-full gap-1.5"
+                          disabled={payingBookingId === booking.id}
+                          onClick={async () => {
+                            setPayingBookingId(booking.id);
+                            try {
+                              const { data, error } = await supabase.functions.invoke("create-yoco-checkout", {
+                                body: { bookingId: booking.id },
+                              });
+                              if (error) throw error;
+                              if (data?.redirectUrl) {
+                                window.location.href = data.redirectUrl;
+                              }
+                            } catch (err) {
+                              console.error("Payment error:", err);
+                            } finally {
+                              setPayingBookingId(null);
+                            }
+                          }}
+                        >
+                          {payingBookingId === booking.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CreditCard className="w-3.5 h-3.5" />}
+                          Pay Now
+                        </Button>
+                      )}
                       {booking.status === "completed" && !ratedBookings.has(booking.id) && (
                         <Button
                           variant="outline"
