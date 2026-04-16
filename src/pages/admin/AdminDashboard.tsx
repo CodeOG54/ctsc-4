@@ -25,6 +25,7 @@ interface Booking {
   pickup_time: string;
   status: string;
   price_estimate: number | null;
+  payment_status: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -67,7 +68,7 @@ const AdminDashboard = () => {
     const [bookingsRes, driversRes, profilesRes] = await Promise.all([
       supabase
         .from("bookings")
-        .select("id, user_id, vehicle_id, driver_id, service_type, booking_type, pickup_location, dropoff_location, hours, pickup_date, pickup_time, status, price_estimate, notes, created_at, updated_at, vehicles:vehicle_id(name), drivers:driver_id(full_name)")
+        .select("id, user_id, vehicle_id, driver_id, service_type, booking_type, pickup_location, dropoff_location, hours, pickup_date, pickup_time, status, price_estimate, payment_status, notes, created_at, updated_at, vehicles:vehicle_id(name), drivers:driver_id(full_name)")
         .order("created_at", { ascending: false }),
       supabase.from("drivers").select("*").eq("is_active", true),
       supabase.from("profiles").select("id, full_name"),
@@ -172,6 +173,17 @@ const AdminDashboard = () => {
                       <span className="text-xs text-muted-foreground capitalize">{booking.service_type.replace(/_/g, " ")}</span>
                       {booking.price_estimate && (
                         <span className="ml-auto text-sm font-bold text-accent">R{booking.price_estimate}</span>
+                      )}
+                      {booking.payment_status && (
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${
+                          booking.payment_status === "paid"
+                            ? "bg-green-500/10 text-green-600 border-green-500/20"
+                            : booking.payment_status === "failed"
+                            ? "bg-destructive/10 text-destructive border-destructive/20"
+                            : "bg-yellow-500/10 text-yellow-600 border-yellow-500/20"
+                        }`}>
+                          {booking.payment_status === "paid" ? "💳 Paid" : booking.payment_status === "failed" ? "💳 Failed" : "💳 Unpaid"}
+                        </span>
                       )}
                     </div>
 
