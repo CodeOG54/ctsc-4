@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Calendar, Clock, MapPin, Car, User, Plus, Activity, CheckCircle2, LayoutList, Star } from "lucide-react";
+import { Calendar, Clock, MapPin, Car, User, Plus, Activity, CheckCircle2, LayoutList, Star, CreditCard, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
@@ -23,6 +23,7 @@ interface Booking {
   price_estimate: number | null;
   is_favourite: boolean;
   notes: string | null;
+  payment_status: string | null;
   created_at: string;
   updated_at: string;
   vehicles?: { name: string } | null;
@@ -68,7 +69,7 @@ const Dashboard = () => {
     const fetchBookings = async () => {
       const { data } = await supabase
         .from("bookings")
-        .select("id, user_id, vehicle_id, driver_id, service_type, booking_type, pickup_location, dropoff_location, hours, pickup_date, pickup_time, status, price_estimate, is_favourite, notes, created_at, updated_at, vehicles:vehicle_id(name), drivers:driver_id(full_name)")
+        .select("id, user_id, vehicle_id, driver_id, service_type, booking_type, pickup_location, dropoff_location, hours, pickup_date, pickup_time, status, price_estimate, is_favourite, notes, payment_status, created_at, updated_at, vehicles:vehicle_id(name), drivers:driver_id(full_name)")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
       setBookings((data as unknown as Booking[]) || []);
