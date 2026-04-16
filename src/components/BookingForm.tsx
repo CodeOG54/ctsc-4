@@ -208,7 +208,9 @@ const BookingForm = () => {
       };
 
       const now = new Date().toISOString();
+      const bookingId = crypto.randomUUID();
       const { error } = await supabase.from("bookings").insert({
+        id: bookingId,
         user_id: user.id,
         vehicle_id: formData.vehicleId,
         service_type: serviceTypeMap[formData.tripType] || "point_to_point",
@@ -221,17 +223,39 @@ const BookingForm = () => {
         price_estimate: priceEstimate,
         notes: bookingNotes,
         is_favourite: false,
+        payment_status: "unpaid",
         created_at: now,
         updated_at: now,
       });
 
       if (error) throw error;
 
-      toast({
-        title: "Booking Submitted! 🎉",
-        description:
-          "Your booking is pending admin approval. Check your dashboard.",
-      });
+      // Create Yoco checkout session and redirect to payment
+      try {
+        const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke(
+          "create-yoco-checkout",
+          { body: { bookingId } }
+        );
+
+        if (checkoutError) throw checkoutError;
+
+        if (checkoutData?.redirectUrl) {
+          toast({
+            title: "Booking Created! 🎉",
+            description: "Redirecting you to payment...",
+          });
+          // Redirect to Yoco payment page
+          window.location.href = checkoutData.redirectUrl;
+          return;
+        }
+      } catch (paymentError) {
+        console.error("Payment redirect error:", paymentError);
+        // Booking was created successfully, just couldn't redirect to payment
+        toast({
+          title: "Booking Submitted! 🎉",
+          description: "Booking saved. You can pay from your dashboard.",
+        });
+      }
 
       // Reset form
       setFormData({
