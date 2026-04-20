@@ -70,7 +70,19 @@ Deno.serve(async (req) => {
       console.warn("YOCO_WEBHOOK_SECRET not set - skipping signature verification (OK for testing)");
     }
 
-    const event = JSON.parse(rawBody);
+    if (!rawBody) {
+      console.warn("Empty webhook body received");
+      return new Response("No content", { status: 200 });
+    }
+
+    let event;
+
+    try {
+      event = JSON.parse(rawBody);
+    } catch (err) {
+      console.error("Invalid JSON received:", rawBody);
+      return new Response("Invalid JSON", { status: 400 });
+    }
     console.log("Yoco webhook event:", event.type);
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
