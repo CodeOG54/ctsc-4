@@ -301,7 +301,7 @@ const BookingForm = () => {
         phone: "",
         countryCode: "+27",
         numPassengers: 1,
-        tripType: "airport_transfers",
+        tripType: tripTypes[0]?.id || "",
         pickupAddress: "",
         dropoffAddress: "",
         pickupDate: "",
