@@ -208,14 +208,14 @@ export const AirportTransfers = () => (
     title="Airport Transfers"
     subtitle="Reliable & Punctual"
     description={[
-      "Never miss a flight again. Our airport transfer service ensures you arrive at Cape Town International Airport on time, every time. We monitor flight schedules in real-time and adjust pickup times accordingly, so you're always covered — even when plans change.",
+      "Never miss a flight again. Our airport transfer service ensures you arrive at Cape Town International Airport on time, every time. We monitor flight schedules in real-time and adjust pickup times accordingly, so you're always covered even when plans change.",
       "Whether you're arriving, departing, or connecting through Cape Town, our professional drivers will ensure a smooth, stress-free journey. With our meet & greet service, you'll be welcomed and assisted from the moment you arrive.",
     ]}
     features={[
       "Real-time flight tracking & schedule adjustments",
       "Meet & greet service at arrivals",
       "24/7 availability for all flights",
-      "Fixed pricing — no surprise charges",
+      "Fixed pricing no surprise charges",
       "Complimentary 30-minute waiting time",
       "Professional, courteous drivers",
     ]}
@@ -273,7 +273,7 @@ export const PointToPoint = () => (
       "Multiple vehicle options for groups",
       "Easy online booking",
     ]}
-    why="Getting around Cape Town shouldn't be complicated. Our point-to-point transfer service provides straightforward, efficient transportation with no surprises. We focus on getting you where you need to be quickly, safely, and affordably — every single time."
+    why="Getting around Cape Town shouldn't be complicated. Our point-to-point transfer service provides straightforward, efficient transportation with no surprises. We focus on getting you where you need to be quickly, safely, and affordably every single time."
     benefits={["Direct Routes", "Great Prices", "Easy Booking"]}
     icon={<MapPin className="w-12 h-12 text-accent" />}
     image={pointToPointImage}

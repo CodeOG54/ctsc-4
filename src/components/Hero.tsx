@@ -48,7 +48,7 @@ const Hero = () => {
             transition={{ duration: 0.8, delay: 0.6 }}
             className="text-lg text-primary-foreground/70 mb-8 max-w-lg"
           >
-            Experience premium shuttle services across Cape Town. Airport transfers, chauffeur services, and point-to-point transport — all at your fingertips.
+            Experience premium shuttle services across Cape Town. Airport transfers, chauffeur services, and point-to-point transport, all at your fingertips.
           </motion.p>
 
           <motion.div

@@ -1,5 +1,7 @@
 import { motion } from "framer-motion";
 import { CheckCircle, Award, Users, Zap } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import fleetwithstaffImage from "@/assets/fleetwithstaff.jpg";
@@ -62,7 +64,7 @@ const About = () => (
             <span className="font-semibold text-foreground">
               Arrive In Style
             </span>{" "}
-            — with every journey backed by our impeccable track record and full
+            with every journey backed by our impeccable track record and full
             commitment to excellence.
           </p>
         </motion.section>
@@ -128,7 +130,7 @@ const About = () => (
             Founded in 2008 by Severo Zwartz, Cape Town Shuttle Services began
             as a sole proprietorship with a simple mission: provide outstanding
             shuttle services. Thanks to Severo's absolute commitment to
-            exceptional service, the business expanded rapidly—so much so that
+            exceptional service, the business expanded rapidly so much so that
             we were forced to purchase more vehicles and employ additional
             professional drivers and operators.
           </p>
@@ -361,6 +363,11 @@ const About = () => (
             Join thousands of satisfied travelers who trust Cape Town Shuttle
             Services for their transportation needs.
           </p>
+          <Link to="/book" className="hidden sm:inline-block mt-2">
+            <Button variant="hero" size="sm">
+              Book Your Ride
+            </Button>
+          </Link>
         </motion.div>
       </div>
     </div>
