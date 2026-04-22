@@ -37,11 +37,20 @@ interface Vehicle {
   price_per_hour: number;
 }
 
+interface TripType {
+  id: string;
+  name: string;
+  description: string | null;
+  service_type: "airport_transfer" | "chauffeur" | "point_to_point";
+}
+
 const BookingForm = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [tripTypes, setTripTypes] = useState<TripType[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [showReturnTrip, setShowReturnTrip] = useState(false);
   const [loadingVehicles, setLoadingVehicles] = useState(true);
+  const [loadingTripTypes, setLoadingTripTypes] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -52,7 +61,7 @@ const BookingForm = () => {
     phone: "",
     countryCode: "+27",
     numPassengers: 1,
-    tripType: "airport_transfers",
+    tripType: "",
     pickupAddress: "",
     dropoffAddress: "",
     pickupDate: "",
