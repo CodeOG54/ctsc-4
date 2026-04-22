@@ -7,6 +7,7 @@ import {
   ArrowRight,
   Building2,
   Briefcase,
+  Sparkles,
 } from "lucide-react";
 
 const services = [
