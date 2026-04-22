@@ -8,6 +8,8 @@ import point from "../assets/POINT-TO-POINT.jpg";
 import chauffeur from "../assets/CHAUFFEUR-SERVICES.jpg";
 import charter from "../assets/CHARTER-SERVICES.jpg";
 import dinner from "../assets/DINNER-TRANSFERS.jpg";
+import emptrans from "../assets/emptrans.jpg";
+import stafftrans from "../assets/stafftrans.png";
 
 const services = [
   {
@@ -62,6 +64,26 @@ const services = [
       "Looking for a leading company for Dinner Transfers? You have come to the right place. We have been in this business for many years. Our Vehicles are fully licensed and comply with all the relevant legal requirements. This guaranteed our Clients shorter periods of interruptions at routine traffic check points and/or road blocks.\n\nMost often people find a reliable ground transfer for their dinner party. We can offer your guests and participants excellent and dependable Dinner Transfers that will take you to your preferred location where you need to be on time and in style. Rest assured that you are in a safe place. Book your luxury vehicle online and make your dinner program amazing and memorable.",
     image:
       dinner,
+    cta: "Book Now",
+    reverse: false,
+  },
+  {
+    id: 6,
+    title: "Employee Transportation",
+    subtitle: "Cape Town Corporate Commute",
+    description:
+      "Empower your workforce with reliable, comfortable, and punctual employee transportation across Cape Town. We partner with companies of all sizes to provide daily commuter services that get your team to work safely, on time, and ready to perform at their best.\n\nFrom small executive teams to large corporate campuses, our tailored employee transport programmes reduce parking pressure, lower your carbon footprint, and demonstrate genuine care for your staff's wellbeing. With customised routes, monthly corporate billing, and a vetted fleet of professional drivers, we handle every detail so you can focus on running your business.",
+    image: emptrans,
+    cta: "Book Now",
+    reverse: true,
+  },
+  {
+    id: 7,
+    title: "Staff Shuttle Service",
+    subtitle: "Cape Town Group & Shift Transport",
+    description:
+      "Move your team efficiently with our dedicated staff shuttle service. Whether you operate around-the-clock shifts, run a busy hospitality venue, or manage a large industrial site, we deliver safe, on-schedule group transport tailored to your operational rhythm.\n\nOur shuttle fleet covers everything from compact minibuses to full-size coaches, ensuring every staff member has a comfortable seat. With early-morning, late-night, and weekend availability, dedicated account management, and detailed trip reporting, we keep your operations moving without missing a beat.",
+    image: stafftrans,
     cta: "Book Now",
     reverse: false,
   },

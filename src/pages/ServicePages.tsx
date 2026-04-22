@@ -9,12 +9,16 @@ import {
   MapPin,
   Shield,
   Zap,
+  Building2,
+  Briefcase,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import airportTransfersImage from "@/assets/AIRPORT-TRANSFERS.jpeg";
 import chauffeurServicesImage from "@/assets/CHAUFFEUR-SERVICES.jpg";
 import pointToPointImage from "@/assets/POINT-TO-POINT.jpg";
+import employeeTransportImage from "@/assets/emptrans.jpg";
+import staffShuttleImage from "@/assets/stafftrans.png";
 
 interface ServicePageProps {
   title: string;
@@ -277,5 +281,59 @@ export const PointToPoint = () => (
     benefits={["Direct Routes", "Great Prices", "Easy Booking"]}
     icon={<MapPin className="w-12 h-12 text-accent" />}
     image={pointToPointImage}
+  />
+);
+
+export const EmployeeTransportation = () => (
+  <ServicePage
+    title="Employee Transportation"
+    subtitle="Corporate Commute Solutions"
+    description={[
+      "Empower your workforce with reliable, comfortable, and punctual employee transportation across Cape Town. We partner with companies of all sizes to provide daily commuter services that get your team to work safely, on time, and ready to perform.",
+      "From small executive teams to large corporate campuses, our tailored employee transport programmes reduce parking pressure, lower your carbon footprint, and demonstrate genuine care for your staff's wellbeing. We handle the logistics so you can focus on running your business.",
+    ]}
+    features={[
+      "Customised daily commute schedules",
+      "Dedicated routes & pickup points",
+      "Modern, air-conditioned vehicles",
+      "Vetted, professional drivers",
+      "Monthly corporate billing & reporting",
+      "Real-time route tracking & support",
+    ]}
+    why="Reliable employee transport boosts productivity, reduces lateness, and improves staff retention. Our corporate commute solutions are built around your company's hours, locations, and headcount, with flexible contracts that scale as your team grows."
+    benefits={[
+      "Boosted Productivity",
+      "Happier Employees",
+      "Reduced Overheads",
+    ]}
+    icon={<Building2 className="w-12 h-12 text-accent" />}
+    image={employeeTransportImage}
+  />
+);
+
+export const StaffShuttleService = () => (
+  <ServicePage
+    title="Staff Shuttle Service"
+    subtitle="Group & Shift Transport"
+    description={[
+      "Move your team efficiently with our dedicated staff shuttle service. Whether you operate around-the-clock shifts, run a busy hospitality venue, or manage a large industrial site, we deliver safe, on-schedule group transport tailored to your operational rhythm.",
+      "Our shuttle fleet covers everything from compact minibuses to full-size coaches, ensuring every staff member has a comfortable seat. With early-morning, late-night, and weekend availability, we keep your operations moving without missing a beat.",
+    ]}
+    features={[
+      "Shift-aligned pickups & drop-offs",
+      "Fleet sized to your headcount",
+      "24/7 availability for night shifts",
+      "Multiple pickup zones across Cape Town",
+      "Dedicated account manager",
+      "Trip logs & attendance reporting",
+    ]}
+    why="Late or missing staff disrupts your entire operation. Our staff shuttle service guarantees consistent, on-time transport for your team — backed by a professional fleet, experienced drivers, and 24/7 operational support that never lets you down."
+    benefits={[
+      "On-Time Every Shift",
+      "Scalable Fleet",
+      "Dedicated Support",
+    ]}
+    icon={<Briefcase className="w-12 h-12 text-accent" />}
+    image={staffShuttleImage}
   />
 );
