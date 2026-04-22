@@ -636,30 +636,38 @@ const BookingForm = () => {
         </div>
 
         {/* Extra Details Section */}
-        <div className="border-t border-border pt-8">
-          <Label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-2">
-            <FileText className="w-4 h-4 text-accent" /> Extra Details
-            {formData.tripType === "other" && (
-              <span className="text-red-500">*</span>
-            )}
-          </Label>
-          <Textarea
-            value={formData.extraDetails}
-            onChange={(e) => handleChange("extraDetails", e.target.value)}
-            placeholder={
-              formData.tripType === "other"
-                ? "Please describe your trip type and requirements..."
-                : "Flight details, special requirements, luggage info, etc."
-            }
-            rows={4}
-            className="resize-none"
-          />
-          <p className="text-xs text-muted-foreground mt-2">
-            {formData.tripType === "other"
-              ? "Required - Please provide details about your custom trip type"
-              : "Tell us anything else we should know about your booking"}
-          </p>
-        </div>
+        {(() => {
+          const selectedTrip = tripTypes.find((t) => t.id === formData.tripType);
+          const isCustomTrip =
+            !!selectedTrip &&
+            (selectedTrip.name.toLowerCase().includes("custom") ||
+              selectedTrip.name.toLowerCase().includes("other"));
+          return (
+            <div className="border-t border-border pt-8">
+              <Label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-2">
+                <FileText className="w-4 h-4 text-accent" /> Extra Details
+                {isCustomTrip && <span className="text-destructive">*</span>}
+              </Label>
+              <Textarea
+                value={formData.extraDetails}
+                onChange={(e) => handleChange("extraDetails", e.target.value)}
+                placeholder={
+                  isCustomTrip
+                    ? "Please describe your custom trip — destinations, schedule, group size, special requirements..."
+                    : "Flight details, special requirements, luggage info, etc."
+                }
+                rows={4}
+                className="resize-none"
+                required={isCustomTrip}
+              />
+              <p className="text-xs text-muted-foreground mt-2">
+                {isCustomTrip
+                  ? "Required — please provide full details about your custom trip so we can tailor it for you."
+                  : "Tell us anything else we should know about your booking"}
+              </p>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Submit Button */}
