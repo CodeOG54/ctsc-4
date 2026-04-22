@@ -77,10 +77,37 @@ const BookingForm = () => {
 
   useEffect(() => {
     fetchVehicles();
+    fetchTripTypes();
     if (user) {
       fetchUserProfile();
     }
   }, [user]);
+
+  const fetchTripTypes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("trip_types")
+        .select("id, name, description, service_type")
+        .eq("is_active", true)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      const list = (data || []) as TripType[];
+      setTripTypes(list);
+      // Default to first trip type if none selected
+      setFormData((prev) =>
+        prev.tripType ? prev : { ...prev, tripType: list[0]?.id || "" }
+      );
+    } catch (error) {
+      console.error("Error fetching trip types:", error);
+      toast({
+        title: "Error",
+        description: "Could not load trip types. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingTripTypes(false);
+    }
+  };
 
   const fetchVehicles = async () => {
     try {
