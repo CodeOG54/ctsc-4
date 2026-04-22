@@ -425,19 +425,33 @@ const BookingForm = () => {
             <Select
               value={formData.tripType}
               onValueChange={(value) => handleChange("tripType", value)}
+              disabled={loadingTripTypes}
             >
               <SelectTrigger className="h-11">
-                <SelectValue placeholder="Choose a trip type" />
+                <SelectValue
+                  placeholder={
+                    loadingTripTypes
+                      ? "Loading trip types..."
+                      : "Choose a trip type"
+                  }
+                />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="airport_transfers">
-                  Airport Transfers
-                </SelectItem>
-                <SelectItem value="shuttle_service">Shuttle Service</SelectItem>
-                <SelectItem value="cape_town_tour">Cape Town Tour</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
+                {tripTypes.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>
+                    {t.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
+            {(() => {
+              const sel = tripTypes.find((t) => t.id === formData.tripType);
+              return sel?.description ? (
+                <p className="text-xs text-muted-foreground mt-2">
+                  {sel.description}
+                </p>
+              ) : null;
+            })()}
           </div>
 
           <div className="grid sm:grid-cols-2 gap-5 mb-5">
