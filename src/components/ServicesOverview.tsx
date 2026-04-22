@@ -1,6 +1,13 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Plane, Crown, ArrowRightLeft, ArrowRight } from "lucide-react";
+import {
+  Plane,
+  Crown,
+  ArrowRightLeft,
+  ArrowRight,
+  Building2,
+  Briefcase,
+} from "lucide-react";
 
 const services = [
   {
@@ -23,6 +30,20 @@ const services = [
     description:
       "Direct transfers between any two locations in the Cape Town area.",
     path: "/services/point-to-point",
+  },
+  {
+    icon: Building2,
+    title: "Employee Transportation",
+    description:
+      "Daily corporate commute solutions to keep your workforce on time.",
+    path: "/services/employee-transportation",
+  },
+  {
+    icon: Briefcase,
+    title: "Staff Shuttle Service",
+    description:
+      "Shift-aligned group transport for teams of every size and schedule.",
+    path: "/services/staff-shuttle",
   },
 ];
 
