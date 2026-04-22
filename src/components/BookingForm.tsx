@@ -189,7 +189,12 @@ const BookingForm = () => {
       return;
     }
 
-    if (formData.tripType === "other" && !formData.extraDetails) {
+    const selectedTripType = tripTypes.find((t) => t.id === formData.tripType);
+    const isCustomTrip =
+      selectedTripType?.name?.toLowerCase().includes("custom") ||
+      selectedTripType?.name?.toLowerCase().includes("other");
+
+    if (isCustomTrip && !formData.extraDetails) {
       toast({
         title: "Details required",
         description: "Please provide details about your custom trip type.",
@@ -212,13 +217,17 @@ const BookingForm = () => {
 
       // Prepare booking data
       const selectedVehicle = vehicles.find((v) => v.id === formData.vehicleId);
+      const serviceType = selectedTripType?.service_type || "point_to_point";
       const priceEstimate =
-        formData.tripType === "airport_transfers"
+        serviceType === "airport_transfer"
           ? selectedVehicle?.price_per_km || 0
           : selectedVehicle?.price_per_hour || 0;
 
       // Build a clean, human-readable notes string
       const noteParts: string[] = [];
+      if (selectedTripType?.name) {
+        noteParts.push(`Trip Type: ${selectedTripType.name}`);
+      }
       if (formData.numPassengers && Number(formData.numPassengers) > 1) {
         noteParts.push(`Passengers: ${formData.numPassengers}`);
       }
@@ -235,21 +244,13 @@ const BookingForm = () => {
       }
       const bookingNotes = noteParts.length > 0 ? noteParts.join(" | ") : null;
 
-      // Map trip types to service types (matching schema CHECK constraint)
-      const serviceTypeMap: { [key: string]: string } = {
-        airport_transfers: "airport_transfer",
-        shuttle_service: "point_to_point",
-        cape_town_tour: "point_to_point",
-        other: "point_to_point",
-      };
-
       const now = new Date().toISOString();
       const bookingId = crypto.randomUUID();
       const { error } = await supabase.from("bookings").insert({
         id: bookingId,
         user_id: user.id,
         vehicle_id: formData.vehicleId,
-        service_type: serviceTypeMap[formData.tripType] || "point_to_point",
+        service_type: serviceType,
         booking_type: "transfer",
         pickup_location: formData.pickupAddress,
         dropoff_location: formData.dropoffAddress,
