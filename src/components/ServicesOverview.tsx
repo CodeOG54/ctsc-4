@@ -46,6 +46,13 @@ const services = [
       "Shift-aligned group transport for teams of every size and schedule.",
     path: "/services/staff-shuttle",
   },
+  {
+    icon: Sparkles,
+    title: "Custom Trip",
+    description:
+      "Tell us your unique travel needs and we'll tailor the perfect ride for you.",
+    path: "/book",
+  },
 ];
 
 const ServicesOverview = () => {
