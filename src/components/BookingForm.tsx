@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
@@ -51,6 +52,17 @@ const BookingForm = () => {
   const [showReturnTrip, setShowReturnTrip] = useState(false);
   const [loadingVehicles, setLoadingVehicles] = useState(true);
   const [loadingTripTypes, setLoadingTripTypes] = useState(true);
+  const [serviceCategory, setServiceCategory] = useState<"shuttle" | "staff">("shuttle");
+
+  // Names of trip types that belong to the "Staff Service" category
+  const STAFF_TRIP_NAMES = ["employee transportation", "staff shuttle service"];
+
+  const isStaffTrip = (name: string) =>
+    STAFF_TRIP_NAMES.includes(name.toLowerCase().trim());
+
+  const filteredTripTypes = tripTypes.filter((t) =>
+    serviceCategory === "staff" ? isStaffTrip(t.name) : !isStaffTrip(t.name)
+  );
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -93,9 +105,10 @@ const BookingForm = () => {
       if (error) throw error;
       const list = (data || []) as TripType[];
       setTripTypes(list);
-      // Default to first trip type if none selected
+      // Default to first non-staff trip type (since "Shuttle Service" tab is active by default)
+      const firstShuttle = list.find((t) => !isStaffTrip(t.name));
       setFormData((prev) =>
-        prev.tripType ? prev : { ...prev, tripType: list[0]?.id || "" }
+        prev.tripType ? prev : { ...prev, tripType: firstShuttle?.id || list[0]?.id || "" }
       );
     } catch (error) {
       console.error("Error fetching trip types:", error);
@@ -330,9 +343,41 @@ const BookingForm = () => {
     }
   };
 
+  const handleServiceCategoryChange = (value: string) => {
+    const next = value as "shuttle" | "staff";
+    setServiceCategory(next);
+    // Reset trip type to first one available in the new category
+    const firstInCategory = tripTypes.find((t) =>
+      next === "staff" ? isStaffTrip(t.name) : !isStaffTrip(t.name)
+    );
+    setFormData((prev) => ({ ...prev, tripType: firstInCategory?.id || "" }));
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       <div className="bg-card border border-border rounded-2xl p-8">
+        {/* Service Category Tabs */}
+        <Tabs
+          value={serviceCategory}
+          onValueChange={handleServiceCategoryChange}
+          className="mb-8"
+        >
+          <TabsList className="grid w-full grid-cols-2 h-12 p-1 bg-muted/60">
+            <TabsTrigger
+              value="shuttle"
+              className="h-10 text-sm sm:text-base font-semibold data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-md"
+            >
+              Shuttle Service
+            </TabsTrigger>
+            <TabsTrigger
+              value="staff"
+              className="h-10 text-sm sm:text-base font-semibold data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-md"
+            >
+              Staff Service
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+
         {/* Personal Details Section */}
         <div className="mb-8">
           <h3 className="text-xl font-bold text-foreground mb-6">
@@ -437,7 +482,7 @@ const BookingForm = () => {
                 />
               </SelectTrigger>
               <SelectContent>
-                {tripTypes.map((t) => (
+                {filteredTripTypes.map((t) => (
                   <SelectItem key={t.id} value={t.id}>
                     {t.name}
                   </SelectItem>
