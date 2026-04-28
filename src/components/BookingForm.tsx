@@ -54,11 +54,16 @@ const BookingForm = () => {
   const [loadingTripTypes, setLoadingTripTypes] = useState(true);
   const [serviceCategory, setServiceCategory] = useState<"shuttle" | "staff">("shuttle");
 
-  // Names of trip types that belong to the "Staff Service" category
-  const STAFF_TRIP_NAMES = ["employee transportation", "staff shuttle service"];
-
-  const isStaffTrip = (name: string) =>
-    STAFF_TRIP_NAMES.includes(name.toLowerCase().trim());
+  // Trip types that belong to the "Staff Service" category — matched loosely so
+  // small naming differences in the DB still get filtered correctly.
+  const isStaffTrip = (name: string) => {
+    const n = name.toLowerCase().trim();
+    return (
+      n.includes("employee") ||
+      n.includes("staff shuttle") ||
+      n.includes("staff transport")
+    );
+  };
 
   const filteredTripTypes = tripTypes.filter((t) =>
     serviceCategory === "staff" ? isStaffTrip(t.name) : !isStaffTrip(t.name)
