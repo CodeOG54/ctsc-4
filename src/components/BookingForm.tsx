@@ -51,6 +51,17 @@ const BookingForm = () => {
   const [showReturnTrip, setShowReturnTrip] = useState(false);
   const [loadingVehicles, setLoadingVehicles] = useState(true);
   const [loadingTripTypes, setLoadingTripTypes] = useState(true);
+  const [serviceCategory, setServiceCategory] = useState<"shuttle" | "staff">("shuttle");
+
+  // Names of trip types that belong to the "Staff Service" category
+  const STAFF_TRIP_NAMES = ["employee transportation", "staff shuttle service"];
+
+  const isStaffTrip = (name: string) =>
+    STAFF_TRIP_NAMES.includes(name.toLowerCase().trim());
+
+  const filteredTripTypes = tripTypes.filter((t) =>
+    serviceCategory === "staff" ? isStaffTrip(t.name) : !isStaffTrip(t.name)
+  );
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
