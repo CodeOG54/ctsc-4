@@ -104,9 +104,10 @@ const BookingForm = () => {
       if (error) throw error;
       const list = (data || []) as TripType[];
       setTripTypes(list);
-      // Default to first trip type if none selected
+      // Default to first non-staff trip type (since "Shuttle Service" tab is active by default)
+      const firstShuttle = list.find((t) => !isStaffTrip(t.name));
       setFormData((prev) =>
-        prev.tripType ? prev : { ...prev, tripType: list[0]?.id || "" }
+        prev.tripType ? prev : { ...prev, tripType: firstShuttle?.id || list[0]?.id || "" }
       );
     } catch (error) {
       console.error("Error fetching trip types:", error);
