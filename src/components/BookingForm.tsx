@@ -342,9 +342,41 @@ const BookingForm = () => {
     }
   };
 
+  const handleServiceCategoryChange = (value: string) => {
+    const next = value as "shuttle" | "staff";
+    setServiceCategory(next);
+    // Reset trip type to first one available in the new category
+    const firstInCategory = tripTypes.find((t) =>
+      next === "staff" ? isStaffTrip(t.name) : !isStaffTrip(t.name)
+    );
+    setFormData((prev) => ({ ...prev, tripType: firstInCategory?.id || "" }));
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       <div className="bg-card border border-border rounded-2xl p-8">
+        {/* Service Category Tabs */}
+        <Tabs
+          value={serviceCategory}
+          onValueChange={handleServiceCategoryChange}
+          className="mb-8"
+        >
+          <TabsList className="grid w-full grid-cols-2 h-12 p-1 bg-muted/60">
+            <TabsTrigger
+              value="shuttle"
+              className="h-10 text-sm sm:text-base font-semibold data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-md"
+            >
+              Shuttle Service
+            </TabsTrigger>
+            <TabsTrigger
+              value="staff"
+              className="h-10 text-sm sm:text-base font-semibold data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-md"
+            >
+              Staff Service
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+
         {/* Personal Details Section */}
         <div className="mb-8">
           <h3 className="text-xl font-bold text-foreground mb-6">
