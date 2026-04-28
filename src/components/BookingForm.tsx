@@ -482,7 +482,7 @@ const BookingForm = () => {
                 />
               </SelectTrigger>
               <SelectContent>
-                {tripTypes.map((t) => (
+                {filteredTripTypes.map((t) => (
                   <SelectItem key={t.id} value={t.id}>
                     {t.name}
                   </SelectItem>
