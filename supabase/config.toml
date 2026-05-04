@@ -6,3 +6,9 @@ verify_jwt = false
 
 [functions.yoco-webhook]
 verify_jwt = false
+
+[functions.chat-rag]
+verify_jwt = false
+
+[functions.embed-knowledge-base]
+verify_jwt = false
