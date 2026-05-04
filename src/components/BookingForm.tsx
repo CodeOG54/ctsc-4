@@ -506,7 +506,7 @@ const BookingForm = () => {
 
           <div className="grid sm:grid-cols-2 gap-5 mb-5">
             <div>
-              <Label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-2">
+              <Label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-accent" /> Pickup Address *
               </Label>
               <Input
@@ -518,7 +518,7 @@ const BookingForm = () => {
               />
             </div>
             <div>
-              <Label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-2">
+              <Label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-accent" /> Drop-off Address *
               </Label>
               <Input
@@ -533,7 +533,7 @@ const BookingForm = () => {
 
           <div className="grid sm:grid-cols-2 gap-5">
             <div>
-              <Label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-2">
+              <Label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-accent" /> Pickup Date *
               </Label>
               <Input
@@ -545,7 +545,7 @@ const BookingForm = () => {
               />
             </div>
             <div>
-              <Label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-2">
+              <Label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
                 <Clock className="w-4 h-4 text-accent" /> Pickup Time *
               </Label>
               <Input
@@ -581,7 +581,7 @@ const BookingForm = () => {
             <div className="space-y-5 p-5 bg-background/50 rounded-lg border border-border">
               <div className="grid sm:grid-cols-2 gap-5">
                 <div>
-                  <Label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-2">
+                  <Label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-accent" /> Return Pickup
                     Address
                   </Label>
@@ -595,7 +595,7 @@ const BookingForm = () => {
                   />
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-2">
+                  <Label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-accent" /> Return Drop-off
                     Address
                   </Label>
@@ -611,7 +611,7 @@ const BookingForm = () => {
               </div>
               <div className="grid sm:grid-cols-2 gap-5">
                 <div>
-                  <Label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-2">
+                  <Label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-accent" /> Return Date
                   </Label>
                   <Input
@@ -622,7 +622,7 @@ const BookingForm = () => {
                   />
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-2">
+                  <Label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
                     <Clock className="w-4 h-4 text-accent" /> Return Time
                   </Label>
                   <Input
@@ -645,7 +645,7 @@ const BookingForm = () => {
 
           <div className="grid sm:grid-cols-2 gap-5 mb-5">
             <div>
-              <Label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-2">
+              <Label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
                 <Plane className="w-4 h-4 text-accent" /> Flight Number
                 (Optional)
               </Label>
@@ -694,7 +694,7 @@ const BookingForm = () => {
               selectedTrip.name.toLowerCase().includes("other"));
           return (
             <div className="border-t border-border pt-8">
-              <Label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-2">
+              <Label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
                 <FileText className="w-4 h-4 text-accent" /> Extra Details
                 {isCustomTrip && <span className="text-destructive">*</span>}
               </Label>
