@@ -1,4 +1,4 @@
-// One-time (or re-runnable) function to generate embeddings for kb_documents
+// One-time (or re-runnable) function to generate embeddings for kb_documents using OpenAI.
 // Call: POST /functions/v1/embed-knowledge-base  (no body needed)
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
@@ -7,12 +7,14 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const EMBED_MODEL = "text-embedding-3-small"; // 1536 dims
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+    if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY not configured");
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -28,13 +30,13 @@ Deno.serve(async (req) => {
     let updated = 0;
     for (const doc of docs ?? []) {
       const input = `${doc.title}\n\n${doc.content}`;
-      const r = await fetch("https://ai.gateway.lovable.dev/v1/embeddings", {
+      const r = await fetch("https://api.openai.com/v1/embeddings", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ model: "google/text-embedding-004", input }),
+        body: JSON.stringify({ model: EMBED_MODEL, input }),
       });
       if (!r.ok) {
         console.error("embed failed", doc.id, r.status, await r.text());
