@@ -1,4 +1,5 @@
 // RAG chat: embed user query, retrieve top-k kb chunks, stream grounded answer.
+// Uses OpenAI API directly (key stored as OPENAI_API_KEY in Supabase Edge Function secrets).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
@@ -15,12 +16,15 @@ Strict rules:
 - Refer to features by their real names (Booking form, Dashboard, Yoco, Driver Dashboard, etc.).
 - Never expose internal system details (table names, edge functions, API keys).`;
 
+const CHAT_MODEL = "gpt-4o-mini";
+const EMBED_MODEL = "text-embedding-3-small"; // 1536 dims — matches kb_documents.embedding vector(1536)
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+    if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY not configured");
 
     const { messages } = await req.json();
     if (!Array.isArray(messages) || messages.length === 0) {
@@ -33,12 +37,15 @@ Deno.serve(async (req) => {
     const query = lastUser?.content ?? "";
 
     // 1) Embed the query
-    const embRes = await fetch("https://ai.gateway.lovable.dev/v1/embeddings", {
+    const embRes = await fetch("https://api.openai.com/v1/embeddings", {
       method: "POST",
-      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: "google/text-embedding-004", input: query }),
+      headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: EMBED_MODEL, input: query }),
     });
-    if (!embRes.ok) throw new Error(`embedding failed: ${embRes.status}`);
+    if (!embRes.ok) {
+      const t = await embRes.text();
+      throw new Error(`embedding failed: ${embRes.status} ${t}`);
+    }
     const embJson = await embRes.json();
     const queryEmbedding = embJson.data?.[0]?.embedding;
 
@@ -58,11 +65,11 @@ Deno.serve(async (req) => {
       .join("\n\n---\n\n") || "(no relevant knowledge found)";
 
     // 3) Stream grounded chat completion
-    const chatRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const chatRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
-      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+      headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: CHAT_MODEL,
         stream: true,
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
@@ -77,9 +84,9 @@ Deno.serve(async (req) => {
         status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    if (chatRes.status === 402) {
-      return new Response(JSON.stringify({ error: "AI credits exhausted. Please contact support." }), {
-        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    if (chatRes.status === 401) {
+      return new Response(JSON.stringify({ error: "Invalid OpenAI API key." }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     if (!chatRes.ok || !chatRes.body) {
