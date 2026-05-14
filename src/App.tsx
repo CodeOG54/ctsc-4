@@ -24,6 +24,7 @@ import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminDrivers from "./pages/admin/AdminDrivers";
 import AdminFleet from "./pages/admin/AdminFleet";
+import AdminLayout from "./pages/admin/AdminLayout";
 import DriverDashboard from "./pages/DriverDashboard";
 import DriverProfile from "./pages/DriverProfile";
 import NotFound from "./pages/NotFound";
@@ -77,9 +78,11 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/drivers" element={<AdminDrivers />} />
-            <Route path="/admin/fleet" element={<AdminFleet />} />
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="drivers" element={<AdminDrivers />} />
+              <Route path="fleet" element={<AdminFleet />} />
+            </Route>
             <Route path="/driver" element={<DriverDashboard />} />
             <Route path="/driver/profile" element={<DriverProfile />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
