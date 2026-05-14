@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
-import AdminLayout from "./AdminLayout";
+
 import { formatNotes } from "@/lib/formatNotes";
 
 interface Booking {
@@ -117,8 +117,7 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <AdminLayout>
-      <div className="space-y-6 sm:space-y-8">
+    <div className="space-y-6 sm:space-y-8">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Overview</h1>
           <p className="text-muted-foreground text-sm mt-1">Real-time booking management</p>
@@ -256,8 +255,7 @@ const AdminDashboard = () => {
             </div>
           )}
         </div>
-      </div>
-    </AdminLayout>
+    </div>
   );
 };
 

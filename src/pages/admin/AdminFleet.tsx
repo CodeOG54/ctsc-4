@@ -9,7 +9,7 @@ import { uploadImage } from "@/lib/storage";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { useToast } from "@/hooks/use-toast";
-import AdminLayout from "./AdminLayout";
+
 
 interface Vehicle {
   id: string;
@@ -121,8 +121,7 @@ const AdminFleet = () => {
   if (!isAdmin) return null;
 
   return (
-    <AdminLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Fleet</h1>
@@ -236,8 +235,7 @@ const AdminFleet = () => {
             ))}
           </div>
         )}
-      </div>
-    </AdminLayout>
+    </div>
   );
 };
 
