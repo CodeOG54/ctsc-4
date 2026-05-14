@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/admin.png";
 
 const sidebarLinks = [
   { label: "Overview", path: "/admin", icon: LayoutDashboard },
@@ -30,9 +30,9 @@ const SidebarInner = ({
 }) => (
   <>
     <div className="p-5 border-b border-border/50 shrink-0">
-      <Link to="/" className="flex items-center gap-2.5">
+      <Link to="/admin" className="flex items-center gap-2.5">
         <img src={logo} alt="CTSC Travel" className="h-8 w-auto" />
-        <span className="font-bold text-foreground text-sm">Admin Panel</span>
+        <span className="font-bold text-foreground text-sm">Ctsc Admin</span>
       </Link>
     </div>
     <nav className="flex-1 p-3 space-y-1 overflow-hidden">
@@ -58,7 +58,6 @@ const SidebarInner = ({
         </Avatar>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-foreground truncate">{displayName}</p>
-          <p className="text-xs text-muted-foreground truncate">{email}</p>
         </div>
       </div>
       <Button variant="ghost" className="w-full justify-start gap-2 text-muted-foreground rounded-xl text-sm" onClick={() => onNavigate("/")}>
