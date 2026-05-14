@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { useDriverCheck } from "@/hooks/useDriverCheck";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/ctsc.png";
 
 const navLinks = [
   { label: "Home", path: "/" },
@@ -89,7 +89,7 @@ const Navbar = () => {
 
         {/* Logo: always visible, centered on mobile */}
         <Link to="/" className="flex items-center gap-2 lg:order-first">
-          <img src={logo} alt="CTSC Travel" className="h-8 w-auto" />
+          <img src={logo} alt="CTSC Travel" className="h-12 w-auto" />
         </Link>
 
         <div className="hidden lg:flex items-center gap-0.5 bg-secondary/50 rounded-full px-1.5 py-1">
