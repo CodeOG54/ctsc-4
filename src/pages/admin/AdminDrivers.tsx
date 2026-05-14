@@ -8,7 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { useToast } from "@/hooks/use-toast";
-import AdminLayout from "./AdminLayout";
+
 
 interface Driver {
   id: string;
@@ -148,8 +148,7 @@ const AdminDrivers = () => {
   if (!isAdmin) return null;
 
   return (
-    <AdminLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Drivers</h1>
@@ -320,8 +319,7 @@ const AdminDrivers = () => {
             ))}
           </div>
         )}
-      </div>
-    </AdminLayout>
+    </div>
   );
 };
 
