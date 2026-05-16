@@ -59,7 +59,23 @@ export default function ChatWidget() {
 
       if (resp.status === 429) throw new Error("Too many requests — please wait a moment.");
       if (resp.status === 402) throw new Error("AI credits exhausted — please contact support.");
-      if (!resp.ok || !resp.body) throw new Error("Sorry, something went wrong.");
+      if (!resp.ok) throw new Error("Sorry, something went wrong.");
+
+      const contentType = resp.headers.get("content-type") ?? "";
+      if (contentType.includes("application/json")) {
+        const json = await resp.json();
+        const reply =
+          json?.content ??
+          json?.reply ??
+          json?.message ??
+          json?.error ??
+          "Sorry, something went wrong.";
+
+        setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
+        return;
+      }
+
+      if (!resp.body) throw new Error("Sorry, something went wrong.");
 
       const reader = resp.body.getReader();
       const decoder = new TextDecoder();
@@ -98,6 +114,35 @@ export default function ChatWidget() {
             break;
           }
         }
+      }
+
+      const remaining = buffer.trim();
+      if (!assistantText && remaining) {
+        try {
+          const json = JSON.parse(remaining.replace(/^data:\s*/, ""));
+          const reply = json?.content ?? json?.reply ?? json?.message;
+          if (reply) {
+            setMessages((prev) => {
+              const copy = [...prev];
+              copy[copy.length - 1] = { role: "assistant", content: reply };
+              return copy;
+            });
+            assistantText = reply;
+          }
+        } catch {
+          // ignore trailing non-JSON buffers from streaming responses
+        }
+      }
+
+      if (!assistantText) {
+        setMessages((prev) => {
+          const copy = [...prev];
+          copy[copy.length - 1] = {
+            role: "assistant",
+            content: "Sorry, I couldn’t read the assistant response.",
+          };
+          return copy;
+        });
       }
     } catch (e) {
       setMessages((prev) => [
