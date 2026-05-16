@@ -1,7 +1,7 @@
 // ============================================================
 // RAG CHAT EDGE FUNCTION
 // OpenAI + Supabase pgvector
-// Non-streaming JSON response version
+// FINAL PRODUCTION VERSION
 // ============================================================
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
@@ -16,23 +16,23 @@ const SYSTEM_PROMPT = `
 You are the support assistant for Cape Town Shuttle Services, a premium shuttle booking platform.
 
 Strict rules:
-- Answer ONLY using the "Knowledge Base" context provided below.
+- Answer ONLY using the Knowledge Base context provided below.
 - If the answer is not in the context, say:
   "I don't have that info — please reach out via the Contact page."
 - Do not invent details.
-- Be concise, friendly, and use short paragraphs or bullet points.
-- Refer to features by their real names
-  (Booking form, Dashboard, Yoco, Driver Dashboard, etc.).
-- Never expose internal system details
-  (table names, edge functions, API keys).
+- Be concise, friendly, and helpful.
+- Use short paragraphs or bullet points.
+- Refer to features using their real names:
+  Booking form, Dashboard, Driver Dashboard, Yoco, etc.
+- Never expose technical/internal system details.
 `;
 
 const CHAT_MODEL = "gpt-4o-mini";
-const EMBED_MODEL = "text-embedding-3-small"; // 1536 dims
+const EMBED_MODEL = "text-embedding-3-small";
 
 Deno.serve(async (req) => {
   // ==========================================================
-  // HANDLE CORS
+  // CORS
   // ==========================================================
 
   if (req.method === "OPTIONS") {
@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
 
   try {
     // ==========================================================
-    // ENV VARIABLES
+    // ENV
     // ==========================================================
 
     const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
     }
 
     // ==========================================================
-    // PARSE REQUEST
+    // REQUEST BODY
     // ==========================================================
 
     const body = await req.json();
@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
     }
 
     // ==========================================================
-    // GET LAST USER MESSAGE
+    // GET USER QUERY
     // ==========================================================
 
     const lastUserMessage = [...messages]
@@ -88,7 +88,7 @@ Deno.serve(async (req) => {
     console.log("USER QUERY:", query);
 
     // ==========================================================
-    // GENERATE EMBEDDING
+    // GENERATE QUERY EMBEDDING
     // ==========================================================
 
     const embeddingResponse = await fetch(
@@ -126,7 +126,7 @@ Deno.serve(async (req) => {
     }
 
     // ==========================================================
-    // SUPABASE CLIENT
+    // SUPABASE
     // ==========================================================
 
     const supabase = createClient(
@@ -140,30 +140,51 @@ Deno.serve(async (req) => {
 
     const embeddingString = `[${queryEmbedding.join(",")}]`;
 
-const { data: matches, error: matchError } =
-  await supabase.rpc("match_kb_documents", {
-    query_embedding: embeddingString,
-    match_count: 5,
-  });
+    const { data: matches, error: matchError } =
+      await supabase.rpc("match_kb_documents", {
+        query_embedding: embeddingString,
+        match_count: 10,
+      });
+
+    console.log("MATCH ERROR:", matchError);
+    console.log("MATCHES RAW:", JSON.stringify(matches));
+    console.log("MATCHES LENGTH:", matches?.length);
 
     if (matchError) {
-      console.error("VECTOR SEARCH ERROR:", matchError);
+      console.error(
+        "VECTOR SEARCH ERROR:",
+        matchError
+      );
     }
 
-    console.log("MATCHES:", matches);
+    // ==========================================================
+    // FILTER LOW QUALITY MATCHES
+    // ==========================================================
+
+    const filteredMatches = (matches ?? []).filter(
+      (m: any) => m.similarity > 0.1
+    );
+
+    console.log(
+      "FILTERED MATCHES:",
+      JSON.stringify(filteredMatches)
+    );
 
     // ==========================================================
     // BUILD CONTEXT
     // ==========================================================
 
     const context =
-      (matches ?? [])
-        .map(
-          (m: any, i: number) =>
-            `[${i + 1}] ${m.title}\n${m.content}`
-        )
-        .join("\n\n---\n\n") ||
-      "(no relevant knowledge found)";
+      filteredMatches.length > 0
+        ? filteredMatches
+            .map(
+              (m: any, i: number) =>
+                `[${i + 1}] ${m.title}\n${m.content}`
+            )
+            .join("\n\n---\n\n")
+        : "(no relevant knowledge found)";
+
+    console.log("FINAL CONTEXT:", context);
 
     // ==========================================================
     // CHAT COMPLETION
@@ -179,6 +200,7 @@ const { data: matches, error: matchError } =
         },
         body: JSON.stringify({
           model: CHAT_MODEL,
+          temperature: 0.2,
           messages: [
             {
               role: "system",
@@ -195,7 +217,7 @@ const { data: matches, error: matchError } =
     );
 
     // ==========================================================
-    // HANDLE OPENAI ERRORS
+    // OPENAI ERRORS
     // ==========================================================
 
     if (chatResponse.status === 429) {
@@ -250,27 +272,28 @@ const { data: matches, error: matchError } =
     console.log("OPENAI RESPONSE:", chatJson);
 
     const reply =
-      chatJson.choices?.[0]?.message?.content ||
+      chatJson.choices?.[0]?.message?.content?.trim() ||
       "I don't have that info — please reach out via the Contact page.";
 
     console.log("FINAL REPLY:", reply);
 
     // ==========================================================
-    // RETURN JSON
+    // RESPONSE
     // ==========================================================
 
     return new Response(
-      JSON.stringify({
-        reply,
-      }),
-      {
-        status: 200,
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+  JSON.stringify({
+    role: "assistant",
+    content: reply,
+  }),
+  {
+    status: 200,
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "application/json",
+    },
+  }
+);
   } catch (error) {
     console.error("EDGE FUNCTION ERROR:", error);
 
