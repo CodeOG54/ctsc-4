@@ -30,6 +30,36 @@ Strict rules:
 const CHAT_MODEL = "gpt-4o-mini";
 const EMBED_MODEL = "text-embedding-3-small";
 
+function parseEmbedding(value: unknown): number[] {
+  if (Array.isArray(value)) return value.map(Number);
+  if (typeof value === "string") {
+    return value
+      .replace(/^\[/, "")
+      .replace(/\]$/, "")
+      .split(",")
+      .map((part) => Number(part.trim()))
+      .filter((num) => Number.isFinite(num));
+  }
+  return [];
+}
+
+function cosineSimilarity(a: number[], b: number[]) {
+  if (a.length === 0 || b.length === 0 || a.length !== b.length) return -1;
+
+  let dot = 0;
+  let normA = 0;
+  let normB = 0;
+
+  for (let i = 0; i < a.length; i++) {
+    dot += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+
+  if (!normA || !normB) return -1;
+  return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
 Deno.serve(async (req) => {
   // ==========================================================
   // CORS
@@ -135,35 +165,38 @@ Deno.serve(async (req) => {
     );
 
     // ==========================================================
-    // VECTOR SEARCH
+    // MATCH KNOWLEDGE LOCALLY
     // ==========================================================
 
-    const embeddingString = `[${queryEmbedding.join(",")}]`;
+    const { data: docs, error: docsError } = await supabase
+      .from("kb_documents")
+      .select("id, title, content, category, embedding")
+      .not("embedding", "is", null);
 
-    const { data: matches, error: matchError } =
-      await supabase.rpc("match_kb_documents", {
-        query_embedding: embeddingString,
-        match_count: 10,
-      });
-
-    console.log("MATCH ERROR:", matchError);
-    console.log("MATCHES RAW:", JSON.stringify(matches));
-    console.log("MATCHES LENGTH:", matches?.length);
-
-    if (matchError) {
-      console.error(
-        "VECTOR SEARCH ERROR:",
-        matchError
-      );
+    if (docsError) {
+      throw new Error(`Knowledge lookup failed: ${docsError.message}`);
     }
+
+    const matches = (docs ?? [])
+      .map((doc: any) => ({
+        id: doc.id,
+        title: doc.title,
+        content: doc.content,
+        category: doc.category,
+        similarity: cosineSimilarity(queryEmbedding, parseEmbedding(doc.embedding)),
+      }))
+      .filter((doc) => Number.isFinite(doc.similarity))
+      .sort((a, b) => b.similarity - a.similarity)
+      .slice(0, 5);
+
+    console.log("MATCHES RAW:", JSON.stringify(matches));
+    console.log("MATCHES LENGTH:", matches.length);
 
     // ==========================================================
     // FILTER LOW QUALITY MATCHES
     // ==========================================================
 
-    const filteredMatches = (matches ?? []).filter(
-      (m: any) => m.similarity > 0.1
-    );
+    const filteredMatches = matches.filter((m) => m.similarity > 0.25);
 
     console.log(
       "FILTERED MATCHES:",
