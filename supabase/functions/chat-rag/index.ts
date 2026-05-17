@@ -222,11 +222,32 @@ Deno.serve(async (req) => {
     console.log("MATCHES RAW:", JSON.stringify(matches));
     console.log("MATCHES LENGTH:", matches.length);
 
+    logTopSim = matches[0]?.similarity ?? null;
+
     // ==========================================================
     // FILTER LOW QUALITY MATCHES
     // ==========================================================
 
     const filteredMatches = matches.filter((m) => m.similarity > 0.25);
+    logMatchCount = filteredMatches.length;
+
+    // Low-confidence fallback: if best match is weak, short-circuit
+    // with the Contact suggestion instead of guessing.
+    const LOW_CONFIDENCE_THRESHOLD = 0.4;
+    if ((logTopSim ?? 0) < LOW_CONFIDENCE_THRESHOLD) {
+      logUsedFallback = true;
+      const fallback =
+        "I don't have that info — please reach out via the Contact page.";
+      logReply = fallback;
+      await writeLog();
+      return new Response(
+        JSON.stringify({ role: "assistant", content: fallback }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
 
     console.log(
       "FILTERED MATCHES:",
