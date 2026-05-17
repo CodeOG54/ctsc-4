@@ -71,6 +71,35 @@ Deno.serve(async (req) => {
     });
   }
 
+  const startedAt = Date.now();
+  let logQuery = "";
+  let logReply = "";
+  let logTopSim: number | null = null;
+  let logMatchCount = 0;
+  let logUsedFallback = false;
+  let logError: string | null = null;
+
+  const supabaseForLog = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  );
+
+  const writeLog = async () => {
+    try {
+      await supabaseForLog.from("chat_logs").insert({
+        query: logQuery,
+        reply: logReply,
+        top_similarity: logTopSim,
+        match_count: logMatchCount,
+        used_fallback: logUsedFallback,
+        latency_ms: Date.now() - startedAt,
+        error: logError,
+      });
+    } catch (e) {
+      console.error("chat_logs insert failed", e);
+    }
+  };
+
   try {
     // ==========================================================
     // ENV
@@ -114,6 +143,7 @@ Deno.serve(async (req) => {
       .find((m: any) => m.role === "user");
 
     const query = lastUserMessage?.content ?? "";
+    logQuery = query;
 
     console.log("USER QUERY:", query);
 
@@ -192,11 +222,32 @@ Deno.serve(async (req) => {
     console.log("MATCHES RAW:", JSON.stringify(matches));
     console.log("MATCHES LENGTH:", matches.length);
 
+    logTopSim = matches[0]?.similarity ?? null;
+
     // ==========================================================
     // FILTER LOW QUALITY MATCHES
     // ==========================================================
 
     const filteredMatches = matches.filter((m) => m.similarity > 0.25);
+    logMatchCount = filteredMatches.length;
+
+    // Low-confidence fallback: if best match is weak, short-circuit
+    // with the Contact suggestion instead of guessing.
+    const LOW_CONFIDENCE_THRESHOLD = 0.4;
+    if ((logTopSim ?? 0) < LOW_CONFIDENCE_THRESHOLD) {
+      logUsedFallback = true;
+      const fallback =
+        "I don't have that info — please reach out via the Contact page.";
+      logReply = fallback;
+      await writeLog();
+      return new Response(
+        JSON.stringify({ role: "assistant", content: fallback }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
 
     console.log(
       "FILTERED MATCHES:",
@@ -309,40 +360,30 @@ Deno.serve(async (req) => {
       "I don't have that info — please reach out via the Contact page.";
 
     console.log("FINAL REPLY:", reply);
+    logReply = reply;
+    await writeLog();
 
     // ==========================================================
     // RESPONSE
     // ==========================================================
 
     return new Response(
-  JSON.stringify({
-    role: "assistant",
-    content: reply,
-  }),
-  {
-    status: 200,
-    headers: {
-      ...corsHeaders,
-      "Content-Type": "application/json",
-    },
-  }
-);
+      JSON.stringify({ role: "assistant", content: reply }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   } catch (error) {
     console.error("EDGE FUNCTION ERROR:", error);
+    logError = error instanceof Error ? error.message : String(error);
+    await writeLog();
 
     return new Response(
-      JSON.stringify({
-        error:
-          error instanceof Error
-            ? error.message
-            : String(error),
-      }),
+      JSON.stringify({ error: logError }),
       {
         status: 500,
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "application/json",
-        },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
   }
