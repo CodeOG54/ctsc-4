@@ -143,6 +143,7 @@ Deno.serve(async (req) => {
       .find((m: any) => m.role === "user");
 
     const query = lastUserMessage?.content ?? "";
+    logQuery = query;
 
     console.log("USER QUERY:", query);
 
