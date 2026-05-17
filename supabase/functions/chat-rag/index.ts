@@ -71,6 +71,35 @@ Deno.serve(async (req) => {
     });
   }
 
+  const startedAt = Date.now();
+  let logQuery = "";
+  let logReply = "";
+  let logTopSim: number | null = null;
+  let logMatchCount = 0;
+  let logUsedFallback = false;
+  let logError: string | null = null;
+
+  const supabaseForLog = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  );
+
+  const writeLog = async () => {
+    try {
+      await supabaseForLog.from("chat_logs").insert({
+        query: logQuery,
+        reply: logReply,
+        top_similarity: logTopSim,
+        match_count: logMatchCount,
+        used_fallback: logUsedFallback,
+        latency_ms: Date.now() - startedAt,
+        error: logError,
+      });
+    } catch (e) {
+      console.error("chat_logs insert failed", e);
+    }
+  };
+
   try {
     // ==========================================================
     // ENV
