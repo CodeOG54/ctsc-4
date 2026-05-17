@@ -360,40 +360,30 @@ Deno.serve(async (req) => {
       "I don't have that info — please reach out via the Contact page.";
 
     console.log("FINAL REPLY:", reply);
+    logReply = reply;
+    await writeLog();
 
     // ==========================================================
     // RESPONSE
     // ==========================================================
 
     return new Response(
-  JSON.stringify({
-    role: "assistant",
-    content: reply,
-  }),
-  {
-    status: 200,
-    headers: {
-      ...corsHeaders,
-      "Content-Type": "application/json",
-    },
-  }
-);
+      JSON.stringify({ role: "assistant", content: reply }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   } catch (error) {
     console.error("EDGE FUNCTION ERROR:", error);
+    logError = error instanceof Error ? error.message : String(error);
+    await writeLog();
 
     return new Response(
-      JSON.stringify({
-        error:
-          error instanceof Error
-            ? error.message
-            : String(error),
-      }),
+      JSON.stringify({ error: logError }),
       {
         status: 500,
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "application/json",
-        },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
   }
